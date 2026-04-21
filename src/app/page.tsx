@@ -16,7 +16,7 @@ const benefits = [
       </svg>
     ),
     title: 'Instant Grant Discovery',
-    desc: 'Our AI scans hundreds of UK grant databases and matches them to your charity profile in seconds — not hours.',
+    desc: 'Our AI scans thousands of grant databases worldwide and matches them to your nonprofit profile in seconds — not hours.',
   },
   {
     icon: (
@@ -38,7 +38,7 @@ const benefits = [
       </svg>
     ),
     title: 'AI Application Drafts',
-    desc: 'Get a tailored opening paragraph for every application in 10 seconds. Your fundraiser edits, not rewrites from scratch.',
+    desc: 'Get a tailored opening paragraph for every application in 10 seconds. Your fundraising team edits, not rewrites from scratch.',
   },
   {
     icon: (
@@ -56,13 +56,13 @@ const benefits = [
 const steps = [
   {
     step: '01',
-    title: 'Tell us about your charity',
-    desc: 'Share your sector, size, location, and what you do. Takes about 3 minutes.',
+    title: 'Tell us about your nonprofit',
+    desc: 'Share your sector, size, country, and what you do. Takes about 3 minutes.',
   },
   {
     step: '02',
     title: 'We find your matches',
-    desc: 'Our AI analyses every active UK grant and scores your eligibility for each one in real time.',
+    desc: 'Our AI analyses thousands of active grants worldwide and scores your eligibility for each one in real time.',
   },
   {
     step: '03',
@@ -76,33 +76,40 @@ const testimonials = [
     quote: "GrantRadar found us four grants we had no idea existed. We submitted two applications and won one within a month. The AI eligibility explanations saved us hours of reading through criteria.",
     name: 'Sarah Mitchell',
     role: 'Fundraising Manager',
-    org: 'Brightside Youth Trust, Manchester',
+    org: 'Brightside Youth Trust, Manchester 🇬🇧',
     initials: 'SM',
   },
   {
-    quote: "As a one-person fundraising team at a small charity, I simply don't have time to scour grant databases. GrantRadar does it for me every week. The deadline alerts alone are worth the subscription.",
-    name: 'James Okafor',
-    role: 'CEO',
-    org: 'Greenleaf Community Gardens, Bristol',
-    initials: 'JO',
+    quote: "We discovered seven foundation grants we'd never heard of in our first week. The country filter meant every result was actually relevant to us. Our team now spends time writing, not searching.",
+    name: 'Marcus Johnson',
+    role: 'Executive Director',
+    org: 'Chicago Education Alliance, Illinois 🇺🇸',
+    initials: 'MJ',
   },
   {
     quote: "The AI draft generator is genuinely impressive. It reads the grant criteria and writes an opening that actually sounds like us. Our success rate has gone up since we started using it.",
     name: 'Priya Sharma',
     role: 'Development Director',
-    org: 'Inclusive Arts Collective, London',
+    org: 'Inclusive Arts Collective, London 🇬🇧',
     initials: 'PS',
+  },
+  {
+    quote: "As a small community nonprofit in Melbourne, we used to spend days manually searching for funding. GrantRadar surfaces Australian grants we qualify for automatically. It's been a game changer.",
+    name: 'Lena Hartmann',
+    role: 'CEO',
+    org: 'Southside Community Hub, Melbourne 🇦🇺',
+    initials: 'LH',
   },
 ]
 
 const stats = [
-  { value: '£2.1M+', label: 'Funding won by our users' },
-  { value: '380+', label: 'Active UK grants tracked' },
-  { value: '8 hrs', label: 'Saved per fundraiser per week' },
+  { value: '$8.5M+', label: 'Funding found for our users' },
+  { value: '2,400+', label: 'Active grants tracked worldwide' },
+  { value: '50+', label: 'Countries supported' },
   { value: '94%', label: 'Match accuracy rate' },
 ]
 
-const funders = ['National Lottery', 'Lloyds Bank Foundation', 'Comic Relief', 'Esmée Fairbairn', 'Tudor Trust']
+const funders = ['Gates Foundation', 'National Lottery', 'Comic Relief', 'Ford Foundation', 'Esmée Fairbairn']
 
 export default function LandingPage() {
   return (
@@ -114,15 +121,15 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16 text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 text-sm mb-6">
             <span className="w-2 h-2 rounded-full bg-[#00C875]" />
-            AI-powered grant discovery for UK charities
+            AI-powered grant discovery for nonprofits worldwide
           </div>
           <h1 className="font-display text-4xl md:text-6xl font-bold text-white leading-tight mb-6 max-w-3xl mx-auto">
-            Find grants your charity is missing.
+            Find funding your nonprofit is missing.
             <br />
             <span className="text-white">Stop searching. Start winning.</span>
           </h1>
           <p className="text-white/80 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            GrantRadar matches your charity to hundreds of UK grants using AI, explains your eligibility in plain English, and helps you draft applications — saving your team 8–10 hours every week.
+            GrantRadar matches your nonprofit or charity to hundreds of grants in your country using AI, explains your eligibility in plain English, and helps you draft applications — saving your team 8–10 hours every week.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup" className="bg-white text-[#0F4C35] px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-colors duration-200 inline-flex items-center justify-center gap-2 w-full sm:w-auto">
@@ -165,13 +172,13 @@ export default function LandingPage() {
           <div className="text-center mb-14">
             <div className="inline-flex items-center gap-2 bg-white/80 border border-gray-200 rounded-full px-4 py-1.5 text-sm mb-5 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-[#00C875]" />
-              BUILT FOR UK CHARITIES
+              BUILT FOR NONPROFITS WORLDWIDE
             </div>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-[#0D1117] mb-4">
               Everything your fundraising team needs
             </h2>
             <p className="text-gray-500 text-lg max-w-xl mx-auto">
-              Built specifically for UK charity fundraisers who are stretched thin and can't afford to miss funding opportunities.
+              Built for nonprofits and charities worldwide whose fundraising teams are stretched thin and can&apos;t afford to miss funding opportunities.
             </p>
           </div>
         </ScrollReveal>
@@ -202,7 +209,7 @@ export default function LandingPage() {
                 Set up in 3 minutes. Find grants in seconds.
               </h2>
               <p className="text-white/70 text-lg max-w-xl mx-auto">
-                No spreadsheets, no endless browsing. Just targeted, AI-matched funding opportunities for your charity.
+                No spreadsheets, no endless browsing. Just targeted, AI-matched funding opportunities for your nonprofit.
               </p>
             </div>
           </ScrollReveal>
@@ -242,12 +249,12 @@ export default function LandingPage() {
         <ScrollReveal>
           <div className="text-center mb-14">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-[#0D1117] mb-4">
-              Trusted by UK fundraisers
+              Trusted by nonprofits worldwide
             </h2>
-            <p className="text-gray-500 text-lg">Real results from real charity teams.</p>
+            <p className="text-gray-500 text-lg">Real results from real nonprofit and charity teams.</p>
           </div>
         </ScrollReveal>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {testimonials.map((t) => (
             <ScrollReveal key={t.name}>
               <div
@@ -322,7 +329,7 @@ export default function LandingPage() {
               Your next grant is out there right now.
             </h2>
             <p className="text-white/70 text-lg mb-8">
-              Join the UK charities already finding funding they were missing.
+              Join nonprofits worldwide already finding funding they were missing.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-8 text-white text-sm">
               <span>🔒 No credit card required</span>
@@ -347,7 +354,7 @@ export default function LandingPage() {
             <div className="md:col-span-2">
               <div className="font-display font-bold text-white text-lg mb-1">GrantRadar</div>
               <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem' }}>
-                AI-powered grant discovery for UK charities
+                AI-powered grant discovery for nonprofits worldwide
               </p>
             </div>
             {/* Product links */}

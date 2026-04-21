@@ -3,9 +3,9 @@ import Script from 'next/script'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'GrantRadar — Find Grants Your Charity is Missing',
-  description: 'AI-powered grant discovery for UK charities. Find, track and apply for grants your charity is eligible for. Save 8-10 hours per week.',
-  keywords: 'UK charity grants, grant finder, charity funding, grant tracker, nonprofit grants UK',
+  title: 'GrantRadar — Find Grants Your Nonprofit is Missing',
+  description: 'GrantRadar matches your nonprofit to hundreds of grants worldwide using AI — saving your team 8-10 hours every week.',
+  keywords: 'nonprofit grants, grant finder, charity funding, grant tracker, nonprofit grants worldwide, NGO funding',
 }
 
 export default function RootLayout({

@@ -28,7 +28,7 @@ export default function ContactPage() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-20">
         <div className="mb-10">
           <h1 className="font-display text-4xl font-bold text-[#0D1117] mb-4">Get in touch</h1>
-          <p className="text-gray-500 text-lg">Questions about GrantRadar? We reply within 24 hours.</p>
+          <p className="text-gray-500 text-lg">Questions about GrantRadar? We reply within 24 hours, wherever you are.</p>
           <a href="mailto:hello@grantradar.co.uk" className="inline-flex items-center gap-2 text-[#0F4C35] font-medium mt-3 hover:underline text-sm">
             📧 hello@grantradar.co.uk
           </a>
