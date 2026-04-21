@@ -45,8 +45,8 @@ export default function GrantCard({ match, isLocked = false }: Props) {
   const days = daysUntil(match.grant.deadline)
   const supabase = createClient()
 
-  const isNew = match.grant.created_at
-    ? (Date.now() - new Date(match.grant.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000
+  const isNew = match.created_at
+    ? (Date.now() - new Date(match.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000
     : false
 
   async function updateStatus(newStatus: MatchStatus) {
@@ -108,7 +108,7 @@ export default function GrantCard({ match, isLocked = false }: Props) {
           <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide ${STATUS_COLOR[status]}`}>
             {statusOpt?.label}
           </span>
-          {isNew && (
+          {isNew && status !== 'new' && (
             <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-[#00C875] text-[#0D1117] uppercase tracking-wide">
               NEW
             </span>
