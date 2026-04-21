@@ -20,7 +20,7 @@ export default function RootLayout({
         {/* Crisp live chat widget */}
         <Script id="crisp-chat" strategy="afterInteractive">{`
           window.$crisp=[];
-          window.CRISP_WEBSITE_ID="YOUR_CRISP_WEBSITE_ID";
+          window.CRISP_WEBSITE_ID="13e9e21d-6e78-4b58-9f4f-4e431bf507dc";
           (function(){
             var d=document;
             var s=d.createElement("script");
