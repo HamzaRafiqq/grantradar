@@ -491,9 +491,21 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
+    // Fetch existing URLs to avoid duplicates
+    const { data: existing } = await supabase
+      .from('grants')
+      .select('application_url')
+
+    const existingUrls = new Set((existing ?? []).map((g: { application_url: string }) => g.application_url))
+    const newGrants = GLOBAL_GRANTS.filter(g => !existingUrls.has(g.application_url))
+
+    if (newGrants.length === 0) {
+      return NextResponse.json({ ok: true, inserted: 0, message: 'All grants already exist' })
+    }
+
     const { data, error } = await supabase
       .from('grants')
-      .upsert(GLOBAL_GRANTS, { onConflict: 'application_url', ignoreDuplicates: true })
+      .insert(newGrants)
       .select('id')
 
     if (error) {
@@ -504,7 +516,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       inserted: data?.length ?? 0,
-      countries: [...new Set(GLOBAL_GRANTS.map(g => g.country))],
+      skipped: GLOBAL_GRANTS.length - newGrants.length,
+      countries: [...new Set(newGrants.map(g => g.country))],
     })
   } catch (err) {
     console.error('Seed error:', err)
