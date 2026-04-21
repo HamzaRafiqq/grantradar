@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AppShell from '@/components/ui/AppShell'
-import GrantCard from '@/components/ui/GrantCard'
 import DashboardClient from './DashboardClient'
+import DashboardGrants from './DashboardGrants'
 import type { GrantMatchWithGrant } from '@/types'
 import { formatCurrency, daysUntil } from '@/lib/utils'
 
@@ -80,15 +80,7 @@ export default async function DashboardPage() {
             <DashboardClient organisationId={org.id} showButton />
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {typedMatches.map((match, i) => (
-              <GrantCard
-                key={match.id}
-                match={match}
-                isLocked={isFree && i >= 3}
-              />
-            ))}
-          </div>
+          <DashboardGrants matches={typedMatches} isFree={isFree} />
         )}
       </div>
     </AppShell>

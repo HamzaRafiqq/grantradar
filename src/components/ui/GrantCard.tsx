@@ -130,9 +130,11 @@ export default function GrantCard({ match, isLocked = false }: Props) {
             <path d="M12 7v10M9 9.5h4.5a1.5 1.5 0 010 3H10a1.5 1.5 0 000 3H15" stroke="#0F4C35" strokeWidth="1.75" strokeLinecap="round"/>
           </svg>
           <span className="text-sm font-semibold text-[#0F4C35]">
-            {match.grant.min_award > 0
-              ? `${formatCurrency(match.grant.min_award)} – ${formatCurrency(match.grant.max_award)}`
-              : `Up to ${formatCurrency(match.grant.max_award)}`}
+            {!match.grant.max_award || match.grant.max_award === 0
+              ? 'Amount TBC'
+              : match.grant.min_award > 0
+                ? `${formatCurrency(match.grant.min_award)} – ${formatCurrency(match.grant.max_award)}`
+                : `Up to ${formatCurrency(match.grant.max_award)}`}
           </span>
           <span className="text-xs text-gray-400 ml-auto">~2 hr application</span>
         </div>
