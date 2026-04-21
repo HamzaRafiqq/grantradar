@@ -98,32 +98,30 @@ function ruleBasedMatch(org: Org, grants: Grant[]) {
     }>
 }
 
-async function aiMatch(org: Org, grants: Grant[]) {
+async function aiMatchBatch(org: Org, grants: Grant[]) {
   const Anthropic = (await import('@anthropic-ai/sdk')).default
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-  const charityProfile = `
-Name: ${org.name}
+  const charityProfile = `Name: ${org.name}
 Sector: ${org.sector}
 Location: ${org.location}
 Annual Income: ${org.annual_income}
 Registered Charity: ${org.registered_charity ? 'Yes' : 'No'}
 Who We Help: ${org.beneficiaries}
-Current Projects: ${org.current_projects}
-  `.trim()
+Current Projects: ${org.current_projects}`
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 4096,
-    system: `You are a UK grant eligibility expert. Score each grant's eligibility for this charity from 1-10. Return ONLY grants scoring 6 or above. Be specific about why they qualify. Return valid JSON only — no markdown.`,
+    system: `You are a UK grant eligibility expert. Score each grant for this charity from 1-10. Return ONLY grants scoring 6+. Be specific. Return valid JSON array only — no markdown.`,
     messages: [
       {
         role: 'user',
-        content: `Charity Profile:\n${charityProfile}\n\nAvailable Grants:\n${JSON.stringify(grants.map(g => ({
+        content: `Charity:\n${charityProfile}\n\nGrants:\n${JSON.stringify(grants.map(g => ({
           id: g.id, name: g.name, funder: g.funder, description: g.description,
           eligibility_criteria: g.eligibility_criteria, sectors: g.sectors,
           locations: g.locations, income_requirements: g.income_requirements,
-        })), null, 2)}\n\nReturn JSON array with: grant_id, eligibility_score (6-10), match_reason (1 sentence specific to this charity), watch_out (1 sentence or null)`,
+        })))}\n\nReturn JSON array: [{grant_id, eligibility_score (6-10), match_reason (1 sentence), watch_out (1 sentence or null)}]`,
       },
     ],
   })
@@ -131,6 +129,24 @@ Current Projects: ${org.current_projects}
   const raw = message.content[0].type === 'text' ? message.content[0].text : ''
   const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
   return JSON.parse(cleaned)
+}
+
+async function aiMatch(org: Org, grants: Grant[]) {
+  const BATCH_SIZE = 40
+  const allMatches: Array<{ grant_id: string; eligibility_score: number; match_reason: string; watch_out: string | null }> = []
+
+  for (let i = 0; i < grants.length; i += BATCH_SIZE) {
+    const batch = grants.slice(i, i + BATCH_SIZE)
+    try {
+      const matches = await aiMatchBatch(org, batch)
+      allMatches.push(...matches)
+    } catch {
+      // fall back to rule-based for this batch
+      allMatches.push(...ruleBasedMatch(org, batch))
+    }
+  }
+
+  return allMatches
 }
 
 export async function POST(req: NextRequest) {
