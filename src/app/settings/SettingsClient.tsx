@@ -93,7 +93,7 @@ export default function SettingsClient({ profile, org }: Props) {
           </div>
           <div>
             <label className="label">Email address</label>
-            <input className="input" value={profile?.email ?? ''} disabled readOnly className="input bg-gray-50 text-gray-400 cursor-not-allowed" />
+            <input value={profile?.email ?? ''} disabled readOnly className="input bg-gray-50 text-gray-400 cursor-not-allowed" />
             <p className="text-xs text-gray-400 mt-1">Email cannot be changed here. Contact support if needed.</p>
           </div>
           <button type="submit" disabled={profileSaving} className="btn-primary text-sm py-2.5 disabled:opacity-60">
