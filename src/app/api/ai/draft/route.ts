@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,6 +24,9 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (!grant) return NextResponse.json({ error: 'Grant not found' }, { status: 404 })
+
+    const { default: Anthropic } = await import('@anthropic-ai/sdk')
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',

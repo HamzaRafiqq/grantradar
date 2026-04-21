@@ -32,18 +32,31 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .order('eligibility_score', { ascending: false })
 
+  const { data: pipeline } = await supabase
+    .from('pipeline_items')
+    .select('stage, grant:grants(max_award)')
+    .eq('user_id', user.id)
+
   const typedMatches = (matches ?? []) as unknown as GrantMatchWithGrant[]
 
   const isFree = profile?.plan === 'free'
   const closingSoon = typedMatches.filter((m) => daysUntil(m.grant.deadline) <= 30 && daysUntil(m.grant.deadline) > 0)
-  const inProgress = typedMatches.filter((m) => ['applying', 'researching'].includes(m.status))
-  const totalPotential = typedMatches.reduce((sum, m) => sum + m.grant.max_award, 0)
+  const highScore = typedMatches.filter((m) => m.eligibility_score >= 70)
+  const totalPotential = typedMatches.reduce((sum, m) => sum + (m.grant.max_award || 0), 0)
+  const wonValue = (pipeline ?? [])
+    .filter((p: { stage: string }) => p.stage === 'won')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .reduce((sum: number, p: any) => sum + (p.grant?.max_award || 0), 0)
 
   const stats = [
     { label: 'Matched Grants', value: typedMatches.length.toString(), icon: '🎯' },
-    { label: 'Closing Soon', value: closingSoon.length.toString(), icon: '⏰', warn: closingSoon.length > 0 },
-    { label: 'In Progress', value: inProgress.length.toString(), icon: '📝' },
-    { label: 'Total Potential', value: formatCurrency(totalPotential), icon: '💷' },
+    { label: 'Strong Matches', value: highScore.length.toString(), icon: '⭐', highlight: highScore.length > 0 },
+    { label: 'Closing in 30d', value: closingSoon.length.toString(), icon: '⏰', warn: closingSoon.length > 0 },
+    {
+      label: wonValue > 0 ? 'Funding Won' : 'Total Potential',
+      value: wonValue > 0 ? formatCurrency(wonValue) : formatCurrency(totalPotential),
+      icon: wonValue > 0 ? '🏆' : '💷',
+    },
   ]
 
   return (
@@ -63,7 +76,7 @@ export default async function DashboardPage() {
           {stats.map((stat) => (
             <div key={stat.label} className="card">
               <div className="text-2xl mb-1">{stat.icon}</div>
-              <div className={`font-bold text-2xl ${stat.warn ? 'text-orange-500' : 'text-[#0D1117]'}`}>
+              <div className={`font-bold text-2xl ${stat.warn ? 'text-orange-500' : stat.highlight ? 'text-[#0F4C35]' : 'text-[#0D1117]'}`}>
                 {stat.value}
               </div>
               <div className="text-gray-400 text-xs mt-0.5">{stat.label}</div>
@@ -73,10 +86,24 @@ export default async function DashboardPage() {
 
         {/* Grant cards */}
         {typedMatches.length === 0 ? (
-          <div className="card text-center py-16">
-            <div className="text-4xl mb-4">🔍</div>
-            <h3 className="font-display text-xl font-semibold text-[#0D1117] mb-2">No grants matched yet</h3>
-            <p className="text-gray-400 text-sm mb-6">Click "Find New Grants" to run the AI matching for your charity.</p>
+          <div className="card text-center py-16 max-w-xl mx-auto">
+            <div className="text-5xl mb-5">🚀</div>
+            <h3 className="font-display text-2xl font-bold text-[#0D1117] mb-3">Let&apos;s find your first grants</h3>
+            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
+              Our AI will search hundreds of UK grant sources and match the best opportunities to your charity profile.
+            </p>
+            <div className="grid grid-cols-3 gap-4 mb-8 text-left">
+              {[
+                { step: '1', label: 'AI searches grant databases', icon: '🔍' },
+                { step: '2', label: 'Matches grants to your profile', icon: '🤖' },
+                { step: '3', label: 'Shows your eligibility score', icon: '⭐' },
+              ].map(s => (
+                <div key={s.step} className="bg-[#F4F6F5] rounded-xl p-4 text-center">
+                  <div className="text-2xl mb-2">{s.icon}</div>
+                  <p className="text-xs text-gray-600 leading-snug">{s.label}</p>
+                </div>
+              ))}
+            </div>
             <DashboardClient organisationId={org.id} showButton />
           </div>
         ) : (

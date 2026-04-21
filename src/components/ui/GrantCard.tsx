@@ -61,7 +61,7 @@ export default function GrantCard({ match, isLocked = false }: Props) {
       const res = await fetch('/api/ai/draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matchId: match.id }),
+        body: JSON.stringify({ grantId: match.grant_id }),
       })
       const data = await res.json()
       setDraft(data.draft ?? 'Could not generate draft.')

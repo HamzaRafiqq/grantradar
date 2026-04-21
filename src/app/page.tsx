@@ -369,8 +369,12 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
-          <div className="border-t border-white/10 pt-6 text-xs text-center">
-            © 2026 GrantRadar. All rights reserved.
+          <div className="border-t border-white/10 pt-6 text-xs text-center flex flex-col sm:flex-row items-center justify-center gap-3">
+            <span>© 2026 GrantRadar. All rights reserved.</span>
+            <span className="hidden sm:inline text-white/20">·</span>
+            <a href="mailto:hello@grantradar.co.uk" className="text-white/50 hover:text-white transition-colors">
+              hello@grantradar.co.uk
+            </a>
           </div>
         </div>
       </footer>
