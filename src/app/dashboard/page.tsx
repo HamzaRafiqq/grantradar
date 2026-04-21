@@ -107,7 +107,7 @@ export default async function DashboardPage() {
             <DashboardClient organisationId={org.id} showButton />
           </div>
         ) : (
-          <DashboardGrants matches={typedMatches} isFree={isFree} />
+          <DashboardGrants matches={typedMatches} isFree={isFree} orgCountry={org.country} />
         )}
       </div>
     </AppShell>

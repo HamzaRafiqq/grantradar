@@ -43,6 +43,9 @@ export interface Organisation {
   beneficiaries: string
   current_projects: string
   created_at: string
+  country?: string
+  currency?: string
+  nonprofit_type?: string
 }
 
 export interface Grant {
@@ -60,6 +63,10 @@ export interface Grant {
   income_requirements: string
   is_active: boolean
   created_at: string
+  country?: string
+  region?: string
+  currency?: string
+  amount_usd?: number
 }
 
 export interface GrantMatch {

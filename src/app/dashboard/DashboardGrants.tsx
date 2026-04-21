@@ -12,6 +12,7 @@ const STORAGE_KEY = 'gr_dashboard_filters'
 type SortOption = 'best' | 'deadline' | 'amount_high' | 'amount_low'
 type AmountRange = 'any' | 'under5k' | '5k_25k' | '25k_100k' | 'over100k'
 type DeadlineRange = 'any' | 'month' | '3months' | '6months'
+type CountryScope = 'mine' | 'global' | 'all'
 
 interface Filters {
   sort: SortOption
@@ -19,6 +20,7 @@ interface Filters {
   causes: string[]
   deadline: DeadlineRange
   search: string
+  countryScope: CountryScope
 }
 
 const defaultFilters: Filters = {
@@ -27,6 +29,7 @@ const defaultFilters: Filters = {
   causes: [],
   deadline: 'any',
   search: '',
+  countryScope: 'all',
 }
 
 function loadFilters(): Filters {
@@ -59,9 +62,10 @@ function inDeadlineRange(deadline: string, range: DeadlineRange): boolean {
 interface Props {
   matches: GrantMatchWithGrant[]
   isFree: boolean
+  orgCountry?: string
 }
 
-export default function DashboardGrants({ matches, isFree }: Props) {
+export default function DashboardGrants({ matches, isFree, orgCountry }: Props) {
   const [filters, setFilters] = useState<Filters>(defaultFilters)
   const [showClosed, setShowClosed] = useState(false)
   const [filtersLoaded, setFiltersLoaded] = useState(false)
@@ -90,6 +94,22 @@ export default function DashboardGrants({ matches, isFree }: Props) {
 
   const filtered = useMemo(() => {
     let result = [...base]
+
+    // Country scope filter
+    if (filters.countryScope === 'mine' && orgCountry) {
+      result = result.filter(m =>
+        m.grant.country === orgCountry ||
+        m.grant.country === 'Global' ||
+        m.grant.locations?.includes('Global') ||
+        m.grant.locations?.includes('International')
+      )
+    } else if (filters.countryScope === 'global') {
+      result = result.filter(m =>
+        m.grant.country === 'Global' ||
+        m.grant.locations?.includes('Global') ||
+        m.grant.locations?.includes('International')
+      )
+    }
 
     if (filters.search.trim()) {
       const q = filters.search.toLowerCase()
@@ -132,7 +152,8 @@ export default function DashboardGrants({ matches, isFree }: Props) {
     filters.amount !== 'any' ||
     filters.causes.length > 0 ||
     filters.deadline !== 'any' ||
-    filters.search.trim() !== ''
+    filters.search.trim() !== '' ||
+    filters.countryScope !== 'all'
 
   function clearFilters() {
     setFilters(defaultFilters)
@@ -205,6 +226,17 @@ export default function DashboardGrants({ matches, isFree }: Props) {
             <option value="month">This month</option>
             <option value="3months">Next 3 months</option>
             <option value="6months">Next 6 months</option>
+          </select>
+
+          {/* Country scope */}
+          <select
+            value={filters.countryScope}
+            onChange={e => setFilters(f => ({ ...f, countryScope: e.target.value as CountryScope }))}
+            className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0F4C35] bg-white"
+          >
+            <option value="all">All countries</option>
+            {orgCountry && <option value="mine">My country ({orgCountry})</option>}
+            <option value="global">Global grants only</option>
           </select>
         </div>
 

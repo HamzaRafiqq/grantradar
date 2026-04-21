@@ -13,77 +13,77 @@ type Grant = {
   income_requirements: string
   min_award: number
   max_award: number
+  country?: string
+  region?: string
+  currency?: string
 }
 
 type Org = {
   name: string
   sector: string
   location: string
+  country?: string
+  currency?: string
   annual_income: string
   registered_charity: boolean
   beneficiaries: string
   current_projects: string
 }
 
+function isGlobalGrant(grant: Grant) {
+  return (
+    grant.country === 'Global' ||
+    grant.locations?.includes('Global') ||
+    grant.locations?.includes('International')
+  )
+}
+
+function countryMatches(org: Org, grant: Grant) {
+  if (isGlobalGrant(grant)) return true
+  if (!org.country) return true
+  return grant.country === org.country
+}
+
 // Rule-based matching used when no Anthropic API key is set
 function ruleBasedMatch(org: Org, grants: Grant[]) {
-  const ukRegionToCountry: Record<string, string> = {
-    'Greater London': 'England',
-    'South East England': 'England',
-    'South West England': 'England',
-    'East of England': 'England',
-    'East Midlands': 'England',
-    'West Midlands': 'England',
-    'Yorkshire and the Humber': 'England',
-    'North West England': 'England',
-    'North East England': 'England',
-    'Scotland': 'Scotland',
-    'Wales': 'Wales',
-    'Northern Ireland': 'Northern Ireland',
-  }
-
-  const country = ukRegionToCountry[org.location] ?? 'England'
-
   return grants
     .map((grant) => {
-      let score = 6
+      let score = 5
 
-      // Sector match
+      // Country match (highest priority — 30 pts equiv scaled to 10-pt system = +3)
+      const countryMatch = countryMatches(org, grant)
+      if (countryMatch) score += 3
+      else score -= 2
+
+      // Cause area match (+2)
       const sectorMatch = grant.sectors.includes(org.sector) || grant.sectors.includes('other')
-      if (sectorMatch) score += 1
+      if (sectorMatch) score += 2
 
-      // Location match
-      const locationMatch =
-        grant.locations.includes(country) ||
-        grant.locations.includes(org.location) ||
-        grant.locations.includes('England') && country === 'England'
-      if (locationMatch) score += 1
-
-      // Income match
+      // Income eligibility (+1.5)
       const req = (grant.income_requirements ?? '').toLowerCase()
       const income = org.annual_income
       const incomeOk =
-        !req ||
-        (income === 'under_100k' && !req.includes('above') && !req.includes('typically above')) ||
+        !req || req === 'any size' ||
+        (income === 'under_100k' && !req.includes('above') && !req.includes('over_500k')) ||
         (income === '100k_500k') ||
         (income === 'over_500k' && !req.includes('under'))
-      if (!incomeOk) score -= 2
-
-      // Registered charity bonus
-      if (org.registered_charity) score += 1
+      if (incomeOk) score += 1
 
       // Cap at 10
       score = Math.min(10, Math.max(1, score))
 
-      if (score < 6) return null
+      if (score < 5) return null
 
       const sectorLabel = org.sector.charAt(0).toUpperCase() + org.sector.slice(1)
-      const match_reason = sectorMatch
-        ? `${org.name} works in ${sectorLabel.toLowerCase()}, which is a priority sector for this grant, making it a strong candidate.`
-        : `${org.name} meets the basic eligibility criteria for location and organisation type.`
+      const countryLabel = org.country ?? 'your country'
+      const match_reason = sectorMatch && countryMatch
+        ? `${org.name} works in ${sectorLabel.toLowerCase()} and is based in ${countryLabel}, which aligns well with this grant's priorities.`
+        : sectorMatch
+          ? `${org.name} works in ${sectorLabel.toLowerCase()}, which is a priority sector for this grant.`
+          : `${org.name} meets the eligibility criteria for organisation type and income level.`
 
-      const watch_out = !locationMatch
-        ? `Check that your region (${org.location}) is explicitly covered by this funder's geographic criteria.`
+      const watch_out = !countryMatch
+        ? `This grant targets ${grant.country ?? 'another country'} — verify international applications are accepted.`
         : !sectorMatch
           ? `Your primary sector (${org.sector}) isn't listed — confirm your work fits their priorities before applying.`
           : null
@@ -102,22 +102,28 @@ async function aiMatchBatch(org: Org, grants: Grant[]) {
   const Anthropic = (await import('@anthropic-ai/sdk')).default
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-  const charityProfile = `Name: ${org.name}
+  const orgProfile = `Name: ${org.name}
 Sector: ${org.sector}
+Country: ${org.country ?? 'Unknown'}
 Location: ${org.location}
 Annual Income: ${org.annual_income}
-Registered Charity: ${org.registered_charity ? 'Yes' : 'No'}
+Registered: ${org.registered_charity ? 'Yes' : 'No'}
 Who We Help: ${org.beneficiaries}
 Current Projects: ${org.current_projects}`
 
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 4096,
-    system: `You are a UK grant eligibility expert. Score each grant for this charity from 1-10. Return ONLY grants scoring 6+. Be specific. Return valid JSON array only — no markdown.`,
+    system: `You are a global nonprofit grant eligibility expert. Score each grant for this organisation from 1-10 using:
+- Country match: 30 pts (grants from org's country or marked Global score highest)
+- Cause area match: 35 pts
+- Income eligibility: 20 pts
+- Deadline validity: 15 pts
+Return ONLY grants scoring 6+. Be specific about why the org qualifies. Return valid JSON array only — no markdown.`,
     messages: [
       {
         role: 'user',
-        content: `Charity:\n${charityProfile}\n\nGrants:\n${JSON.stringify(grants.map(g => ({
+        content: `Organisation:\n${orgProfile}\n\nGrants:\n${JSON.stringify(grants.map(g => ({
           id: g.id, name: g.name, funder: g.funder, description: g.description,
           eligibility_criteria: g.eligibility_criteria, sectors: g.sectors,
           locations: g.locations, income_requirements: g.income_requirements,

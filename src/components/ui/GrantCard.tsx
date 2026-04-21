@@ -24,6 +24,30 @@ const STATUS_COLOR: Record<MatchStatus, string> = {
   lost: 'bg-gray-100 text-gray-500',
 }
 
+const COUNTRY_FLAGS: Record<string, string> = {
+  'United Kingdom': '🇬🇧',
+  'United States': '🇺🇸',
+  'Canada': '🇨🇦',
+  'Australia': '🇦🇺',
+  'India': '🇮🇳',
+  'Germany': '🇩🇪',
+  'France': '🇫🇷',
+  'Netherlands': '🇳🇱',
+  'Ireland': '🇮🇪',
+  'New Zealand': '🇳🇿',
+  'South Africa': '🇿🇦',
+  'Nigeria': '🇳🇬',
+  'Kenya': '🇰🇪',
+  'Brazil': '🇧🇷',
+  'Japan': '🇯🇵',
+  'Global': '🌍',
+}
+
+function countryFlag(country?: string) {
+  if (!country) return null
+  return COUNTRY_FLAGS[country] ?? '🌐'
+}
+
 function DeadlineBadge({ days }: { days: number }) {
   if (days <= 0) return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Closed</span>
   if (days <= 7) return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700 animate-pulse">🔴 {days}d left</span>
@@ -155,17 +179,20 @@ export default function GrantCard({ match, isLocked = false }: Props) {
           <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{match.grant.description}</p>
         )}
 
-        {/* Sector tags */}
-        {match.grant.sectors?.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {match.grant.sectors.map(s => (
-              <span key={s} className="text-[10px] bg-[#E8F2ED] text-[#0F4C35] px-2 py-0.5 rounded-full font-medium capitalize">{s}</span>
-            ))}
-            {match.grant.locations?.slice(0, 2).map(l => (
-              <span key={l} className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{l}</span>
-            ))}
-          </div>
-        )}
+        {/* Sector + country tags */}
+        <div className="flex flex-wrap gap-1.5">
+          {match.grant.sectors?.map(s => (
+            <span key={s} className="text-[10px] bg-[#E8F2ED] text-[#0F4C35] px-2 py-0.5 rounded-full font-medium capitalize">{s}</span>
+          ))}
+          {match.grant.country && (
+            <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+              {countryFlag(match.grant.country)} {match.grant.country}
+            </span>
+          )}
+          {!match.grant.country && match.grant.locations?.slice(0, 1).map(l => (
+            <span key={l} className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{l}</span>
+          ))}
+        </div>
 
         {/* Why you match */}
         <div className="bg-[#F4F6F5] rounded-xl p-3">
