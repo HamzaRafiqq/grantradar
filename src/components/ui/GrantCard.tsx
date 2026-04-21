@@ -45,6 +45,10 @@ export default function GrantCard({ match, isLocked = false }: Props) {
   const days = daysUntil(match.grant.deadline)
   const supabase = createClient()
 
+  const isNew = match.grant.created_at
+    ? (Date.now() - new Date(match.grant.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000
+    : false
+
   async function updateStatus(newStatus: MatchStatus) {
     setStatus(newStatus)
     await supabase.from('grant_matches').update({ status: newStatus }).eq('id', match.id)
@@ -98,11 +102,18 @@ export default function GrantCard({ match, isLocked = false }: Props) {
         </div>
       )}
 
-      {/* Top bar: status badge + score */}
+      {/* Top bar: status badge + NEW badge + score */}
       <div className="flex items-center justify-between px-5 pt-4 pb-0">
-        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide ${STATUS_COLOR[status]}`}>
-          {statusOpt?.label}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide ${STATUS_COLOR[status]}`}>
+            {statusOpt?.label}
+          </span>
+          {isNew && (
+            <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-[#00C875] text-[#0D1117] uppercase tracking-wide">
+              NEW
+            </span>
+          )}
+        </div>
         <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${scoreColor(match.eligibility_score)}`}>
           {match.eligibility_score}/10 match
         </span>
