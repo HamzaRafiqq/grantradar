@@ -363,7 +363,7 @@ export default function LandingPage() {
             <div>
               <div className="text-white text-sm font-semibold mb-3">Company</div>
               <ul className="space-y-2 text-sm">
-                {[['About', '#'], ['Blog', '#'], ['Contact', '#'], ['Privacy Policy', '#']].map(([label, href]) => (
+                {[['About', '/about'], ['Blog', '/blog'], ['Contact', '/contact'], ['Privacy Policy', '/privacy']].map(([label, href]) => (
                   <li key={label}><Link href={href} className="hover:text-white transition-colors">{label}</Link></li>
                 ))}
               </ul>
