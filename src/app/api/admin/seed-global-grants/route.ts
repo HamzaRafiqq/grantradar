@@ -493,7 +493,7 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabase
       .from('grants')
-      .insert(GLOBAL_GRANTS)
+      .upsert(GLOBAL_GRANTS, { onConflict: 'application_url', ignoreDuplicates: true })
       .select('id')
 
     if (error) {
