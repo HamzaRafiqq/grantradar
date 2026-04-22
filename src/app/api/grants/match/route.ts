@@ -207,6 +207,16 @@ export async function POST(req: NextRequest) {
         .upsert(rows, { onConflict: 'user_id,grant_id', ignoreDuplicates: false })
     }
 
+    // Fire grants-ready email (non-blocking)
+    if (rows.length > 0) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fundsradar.co'
+      fetch(`${appUrl}/api/email/grants-ready`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, count: rows.length }),
+      }).catch(() => {})
+    }
+
     return NextResponse.json({ count: rows.length, total_scored: matches.length })
   } catch (err) {
     console.error('Match error:', err)

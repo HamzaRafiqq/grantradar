@@ -3,6 +3,14 @@
     {
       "path": "/api/admin/sync-grants",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/email/digest",
+      "schedule": "0 8 * * 1"
+    },
+    {
+      "path": "/api/email/deadline-alert",
+      "schedule": "0 9 * * *"
     }
   ]
 }
