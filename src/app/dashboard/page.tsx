@@ -4,7 +4,8 @@ import AppShell from '@/components/ui/AppShell'
 import DashboardClient from './DashboardClient'
 import DashboardGrants from './DashboardGrants'
 import type { GrantMatchWithGrant } from '@/types'
-import { formatCurrency, daysUntil } from '@/lib/utils'
+import { daysUntil } from '@/lib/utils'
+import { getLocale, getGreeting, formatLocalAmount } from '@/lib/locale'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -40,6 +41,9 @@ export default async function DashboardPage() {
   const typedMatches = (matches ?? []) as unknown as GrantMatchWithGrant[]
 
   const isFree = profile?.plan === 'free'
+  const locale = getLocale(org.country)
+  const greeting = getGreeting()
+
   const closingSoon = typedMatches.filter((m) => daysUntil(m.grant.deadline) <= 30 && daysUntil(m.grant.deadline) > 0)
   const highScore = typedMatches.filter((m) => m.eligibility_score >= 70)
   const totalPotential = typedMatches.reduce((sum, m) => sum + (m.grant.max_award || 0), 0)
@@ -48,14 +52,17 @@ export default async function DashboardPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .reduce((sum: number, p: any) => sum + (p.grant?.max_award || 0), 0)
 
+  const displayValue = wonValue > 0 ? wonValue : totalPotential
+  const displayAmount = formatLocalAmount(displayValue, 'GBP', locale.currency, locale.currencySymbol)
+
   const stats = [
     { label: 'Matched Grants', value: typedMatches.length.toString(), icon: '🎯' },
     { label: 'Strong Matches', value: highScore.length.toString(), icon: '⭐', highlight: highScore.length > 0 },
     { label: 'Closing in 30d', value: closingSoon.length.toString(), icon: '⏰', warn: closingSoon.length > 0 },
     {
       label: wonValue > 0 ? 'Funding Won' : 'Total Potential',
-      value: wonValue > 0 ? formatCurrency(wonValue) : formatCurrency(totalPotential),
-      icon: wonValue > 0 ? '🏆' : '💷',
+      value: displayAmount.primary,
+      icon: wonValue > 0 ? '🏆' : locale.currencySymbol,
     },
   ]
 
@@ -65,8 +72,11 @@ export default async function DashboardPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
+            <p className="text-gray-400 text-sm mb-0.5">{greeting} {locale.flag}</p>
             <h1 className="font-display text-2xl font-bold text-[#0D1117]">{org.name}</h1>
-            <p className="text-gray-400 text-sm mt-0.5">Your matched grants dashboard</p>
+            <p className="text-gray-400 text-sm mt-0.5">
+              {locale.orgTerm.charAt(0).toUpperCase() + locale.orgTerm.slice(1)} · {org.country ?? 'United Kingdom'} · Your matched grants
+            </p>
           </div>
           <DashboardClient organisationId={org.id} />
         </div>
@@ -90,7 +100,7 @@ export default async function DashboardPage() {
             <div className="text-5xl mb-5">🚀</div>
             <h3 className="font-display text-2xl font-bold text-[#0D1117] mb-3">Let&apos;s find your first grants</h3>
             <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              Our AI will search hundreds of UK grant sources and match the best opportunities to your charity profile.
+              Our AI will search thousands of grant sources worldwide and match the best opportunities to your {locale.orgTerm} profile.
             </p>
             <div className="grid grid-cols-3 gap-4 mb-8 text-left">
               {[

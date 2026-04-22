@@ -295,7 +295,7 @@ export default function DashboardGrants({ matches, isFree, orgCountry }: Props) 
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filtered.map((match, i) => (
-            <GrantCard key={match.id} match={match} isLocked={isFree && i >= 3} />
+            <GrantCard key={match.id} match={match} isLocked={isFree && i >= 3} orgCountry={orgCountry} />
           ))}
         </div>
       )}

@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import type { GrantMatchWithGrant, MatchStatus } from '@/types'
-import { formatCurrency, formatDate, daysUntil, scoreColor, deadlineColor } from '@/lib/utils'
+import { formatDate, daysUntil, scoreColor, deadlineColor } from '@/lib/utils'
+import { getLocale, formatDateLocale, formatLocalAmount } from '@/lib/locale'
 import { createClient } from '@/lib/supabase/client'
 
 const statusOptions: { value: MatchStatus; label: string; color: string }[] = [
@@ -58,9 +59,10 @@ function DeadlineBadge({ days }: { days: number }) {
 interface Props {
   match: GrantMatchWithGrant
   isLocked?: boolean
+  orgCountry?: string
 }
 
-export default function GrantCard({ match, isLocked = false }: Props) {
+export default function GrantCard({ match, isLocked = false, orgCountry }: Props) {
   const [status, setStatus] = useState<MatchStatus>(match.status as MatchStatus)
   const [expanded, setExpanded] = useState(false)
   const [drafting, setDrafting] = useState(false)
@@ -68,6 +70,8 @@ export default function GrantCard({ match, isLocked = false }: Props) {
   const [copied, setCopied] = useState(false)
   const days = daysUntil(match.grant.deadline)
   const supabase = createClient()
+  const locale = getLocale(orgCountry)
+  const grantCurrency = match.grant.currency ?? 'GBP'
 
   const isNew = match.created_at
     ? (Date.now() - new Date(match.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000
@@ -153,7 +157,7 @@ export default function GrantCard({ match, isLocked = false }: Props) {
           <div className="flex items-center gap-2 mt-2">
             <DeadlineBadge days={days} />
             {match.grant.deadline && (
-              <span className="text-xs text-gray-400">{formatDate(match.grant.deadline)}</span>
+              <span className="text-xs text-gray-400">{formatDateLocale(match.grant.deadline, orgCountry)}</span>
             )}
           </div>
         </div>
@@ -167,9 +171,21 @@ export default function GrantCard({ match, isLocked = false }: Props) {
           <span className="text-sm font-semibold text-[#0F4C35]">
             {!match.grant.max_award || match.grant.max_award === 0
               ? 'Amount TBC'
-              : match.grant.min_award > 0
-                ? `${formatCurrency(match.grant.min_award)} – ${formatCurrency(match.grant.max_award)}`
-                : `Up to ${formatCurrency(match.grant.max_award)}`}
+              : (() => {
+                  const maxAmt = formatLocalAmount(match.grant.max_award, grantCurrency, locale.currency, locale.currencySymbol)
+                  const minAmt = match.grant.min_award > 0
+                    ? formatLocalAmount(match.grant.min_award, grantCurrency, locale.currency, locale.currencySymbol)
+                    : null
+                  return (
+                    <span>
+                      {minAmt ? `${minAmt.primary} – ${maxAmt.primary}` : `Up to ${maxAmt.primary}`}
+                      {maxAmt.secondary && (
+                        <span className="text-[10px] text-gray-400 font-normal ml-1">({maxAmt.secondary})</span>
+                      )}
+                    </span>
+                  )
+                })()
+            }
           </span>
           <span className="text-xs text-gray-400 ml-auto">~2 hr application</span>
         </div>
