@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   title: 'FundsRadar — Find Grants Your Nonprofit is Missing',
   description: 'FundsRadar matches your nonprofit to hundreds of grants worldwide using AI — saving your team 8-10 hours every week.',
   keywords: 'nonprofit grants, grant finder, charity funding, grant tracker, nonprofit grants worldwide, NGO funding',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 }
 
 export default function RootLayout({
