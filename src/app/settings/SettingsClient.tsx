@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { getLocale } from '@/lib/locale'
 import type { Profile, Organisation, Sector, AnnualIncome } from '@/types'
 
 const sectors = [
@@ -19,10 +20,20 @@ const sectors = [
   { value: 'other', label: 'Other / General Community' },
 ]
 
-const ukRegions = [
-  'East Midlands', 'East of England', 'Greater London', 'North East England',
-  'North West England', 'Northern Ireland', 'Scotland', 'South East England',
-  'South West England', 'Wales', 'West Midlands', 'Yorkshire and the Humber',
+const COUNTRIES = [
+  'United Kingdom', 'United States', 'Canada', 'Australia', 'New Zealand',
+  'Ireland', 'India', 'Germany', 'France', 'Netherlands', 'South Africa',
+  'Nigeria', 'Kenya', 'Brazil', 'Japan', 'Singapore', 'Other',
+]
+
+const nonprofitTypes = [
+  { value: 'registered_charity', label: 'Registered Charity' },
+  { value: '501c3', label: '501(c)(3) Nonprofit' },
+  { value: 'ngo', label: 'NGO / Civil Society Organisation' },
+  { value: 'cic', label: 'Community Interest Company (CIC)' },
+  { value: 'social_enterprise', label: 'Social Enterprise' },
+  { value: 'informal', label: 'Informal / Unregistered Group' },
+  { value: 'other', label: 'Other' },
 ]
 
 interface Props {
@@ -33,6 +44,9 @@ interface Props {
 export default function SettingsClient({ profile, org }: Props) {
   const router = useRouter()
   const supabase = createClient()
+
+  const locale = getLocale(org?.country)
+  const sym = locale.currencySymbol
 
   const [fullName, setFullName] = useState(profile?.full_name ?? '')
   const [profileSaving, setProfileSaving] = useState(false)
@@ -50,6 +64,13 @@ export default function SettingsClient({ profile, org }: Props) {
   })
   const [orgSaving, setOrgSaving] = useState(false)
   const [orgSaved, setOrgSaved] = useState(false)
+
+  const [regionalForm, setRegionalForm] = useState({
+    country: org?.country ?? 'United Kingdom',
+    nonprofit_type: org?.nonprofit_type ?? '',
+  })
+  const [regionalSaving, setRegionalSaving] = useState(false)
+  const [regionalSaved, setRegionalSaved] = useState(false)
 
   const [cancelLoading, setCancelLoading] = useState(false)
 
@@ -73,6 +94,16 @@ export default function SettingsClient({ profile, org }: Props) {
     router.refresh()
   }
 
+  async function saveRegional(e: React.FormEvent) {
+    e.preventDefault()
+    setRegionalSaving(true)
+    await supabase.from('organisations').update(regionalForm).eq('id', org!.id)
+    setRegionalSaving(false)
+    setRegionalSaved(true)
+    setTimeout(() => setRegionalSaved(false), 2000)
+    router.refresh()
+  }
+
   async function cancelSubscription() {
     if (!confirm('Are you sure you want to cancel your Pro subscription? You\'ll revert to Free at the end of your billing period.')) return
     setCancelLoading(true)
@@ -80,6 +111,12 @@ export default function SettingsClient({ profile, org }: Props) {
     setCancelLoading(false)
     router.refresh()
   }
+
+  const incomeRanges = [
+    { value: 'under_100k', label: `Under ${sym}100,000` },
+    { value: '100k_500k', label: `${sym}100,000 – ${sym}500,000` },
+    { value: 'over_500k', label: `Over ${sym}500,000` },
+  ]
 
   return (
     <div className="space-y-6">
@@ -102,33 +139,73 @@ export default function SettingsClient({ profile, org }: Props) {
         </form>
       </div>
 
+      {/* Regional Settings */}
+      <div className="card">
+        <h2 className="font-display text-lg font-semibold text-[#0D1117] mb-1">Regional settings</h2>
+        <p className="text-gray-400 text-xs mb-4">Used to localise grant matching, amounts, and date formats.</p>
+        <form onSubmit={saveRegional} className="space-y-4">
+          <div>
+            <label className="label">Country</label>
+            <select
+              className="input"
+              value={regionalForm.country}
+              onChange={(e) => setRegionalForm({ ...regionalForm, country: e.target.value })}
+            >
+              {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <p className="text-xs text-gray-400 mt-1">
+              {getLocale(regionalForm.country).flag} Currency: {getLocale(regionalForm.country).currency} · Date format: {getLocale(regionalForm.country).dateStyle === 'MDY' ? 'MM/DD/YYYY' : getLocale(regionalForm.country).dateStyle === 'DMY_DOT' ? 'DD.MM.YYYY' : 'DD/MM/YYYY'}
+            </p>
+          </div>
+          <div>
+            <label className="label">Organisation type</label>
+            <select
+              className="input"
+              value={regionalForm.nonprofit_type}
+              onChange={(e) => setRegionalForm({ ...regionalForm, nonprofit_type: e.target.value })}
+            >
+              <option value="">Select type...</option>
+              {nonprofitTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+          </div>
+          <button type="submit" disabled={regionalSaving} className="btn-primary text-sm py-2.5 disabled:opacity-60">
+            {regionalSaved ? '✓ Saved' : regionalSaving ? 'Saving...' : 'Save regional settings'}
+          </button>
+        </form>
+      </div>
+
       {/* Organisation */}
       <div className="card">
         <h2 className="font-display text-lg font-semibold text-[#0D1117] mb-4">Organisation details</h2>
         <form onSubmit={saveOrg} className="space-y-4">
           <div>
-            <label className="label">Charity name</label>
+            <label className="label">Organisation name</label>
             <input className="input" value={orgForm.name} onChange={(e) => setOrgForm({ ...orgForm, name: e.target.value })} />
           </div>
           <div>
             <label className="label">Sector</label>
-            <select className="input" value={orgForm.sector} onChange={(e) => setOrgForm({ ...orgForm, sector: e.target.value })}>
+            <select className="input" value={orgForm.sector} onChange={(e) => setOrgForm({ ...orgForm, sector: e.target.value as Sector })}>
               {sectors.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           </div>
           <div>
-            <label className="label">Location</label>
-            <select className="input" value={orgForm.location} onChange={(e) => setOrgForm({ ...orgForm, location: e.target.value })}>
-              {ukRegions.map((r) => <option key={r} value={r}>{r}</option>)}
-            </select>
+            <label className="label">Location / Region</label>
+            <input
+              className="input"
+              placeholder="e.g. Greater London, New York, Victoria"
+              value={orgForm.location}
+              onChange={(e) => setOrgForm({ ...orgForm, location: e.target.value })}
+            />
           </div>
           <div>
             <label className="label">Annual income</label>
-            <select className="input" value={orgForm.annual_income} onChange={(e) => setOrgForm({ ...orgForm, annual_income: e.target.value })}>
-              <option value="under_100k">Under £100,000</option>
-              <option value="100k_500k">£100,000 – £500,000</option>
-              <option value="over_500k">Over £500,000</option>
+            <select className="input" value={orgForm.annual_income} onChange={(e) => setOrgForm({ ...orgForm, annual_income: e.target.value as AnnualIncome })}>
+              {incomeRanges.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
             </select>
+          </div>
+          <div>
+            <label className="label">Registration number <span className="text-gray-400 font-normal">({locale.regTerm})</span></label>
+            <input className="input" value={orgForm.charity_number ?? ''} onChange={(e) => setOrgForm({ ...orgForm, charity_number: e.target.value })} />
           </div>
           <div>
             <label className="label">Who do you help?</label>
@@ -151,7 +228,7 @@ export default function SettingsClient({ profile, org }: Props) {
           <div>
             <p className="font-medium text-[#0D1117] capitalize">{profile?.plan ?? 'free'} plan</p>
             <p className="text-gray-400 text-sm">
-              {profile?.plan === 'pro' ? '£49/month' : 'Free forever'}
+              {profile?.plan === 'pro' ? 'Pro subscription active' : 'Free forever'}
             </p>
           </div>
           {profile?.plan === 'pro' && (
@@ -161,7 +238,7 @@ export default function SettingsClient({ profile, org }: Props) {
 
         {profile?.plan === 'free' ? (
           <Link href="/pricing" className="btn-primary text-sm py-2.5">
-            Upgrade to Pro — £49/mo
+            Upgrade to Pro
           </Link>
         ) : (
           <button
