@@ -301,6 +301,11 @@ export default function GrantCard({ match, isLocked = false, orgCountry }: Props
               </a>
             )}
           </div>
+          {match.grant.application_url && (
+            <p className="text-[10px] text-gray-400 text-center">
+              Opens funder&apos;s website — search for this grant once there
+            </p>
+          )}
         </div>
       </div>
     </div>
