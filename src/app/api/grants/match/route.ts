@@ -72,7 +72,7 @@ function ruleBasedMatch(org: Org, grants: Grant[]) {
       // Cap at 10
       score = Math.min(10, Math.max(1, score))
 
-      if (score < 5) return null
+      if (score < 3) return null
 
       const sectorLabel = org.sector.charAt(0).toUpperCase() + org.sector.slice(1)
       const countryLabel = org.country ?? 'your country'
@@ -119,7 +119,7 @@ Current Projects: ${org.current_projects}`
 - Cause area match: 35 pts
 - Income eligibility: 20 pts
 - Deadline validity: 15 pts
-Return ONLY grants scoring 6+. Be specific about why the org qualifies. Return valid JSON array only — no markdown.`,
+Return grants scoring 5+. Cast a wide net — include grants that are a reasonable fit even if not perfect. Be specific about why the org qualifies. Return valid JSON array only — no markdown.`,
     messages: [
       {
         role: 'user',
@@ -188,7 +188,11 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    const rows = matches.map((m: { grant_id: string; eligibility_score: number; match_reason: string; watch_out: string | null }) => ({
+    // Sort by score desc and take top 20
+    matches.sort((a: { eligibility_score: number }, b: { eligibility_score: number }) => b.eligibility_score - a.eligibility_score)
+    const top20 = matches.slice(0, 20)
+
+    const rows = top20.map((m: { grant_id: string; eligibility_score: number; match_reason: string; watch_out: string | null }) => ({
       user_id: user.id,
       grant_id: m.grant_id,
       eligibility_score: m.eligibility_score,
@@ -203,7 +207,7 @@ export async function POST(req: NextRequest) {
         .upsert(rows, { onConflict: 'user_id,grant_id', ignoreDuplicates: false })
     }
 
-    return NextResponse.json({ count: rows.length })
+    return NextResponse.json({ count: rows.length, total_scored: matches.length })
   } catch (err) {
     console.error('Match error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
