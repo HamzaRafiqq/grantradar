@@ -49,7 +49,7 @@ export default function SignupPage() {
                 <circle cx="9" cy="9" r="3" fill="#00C875"/>
               </svg>
             </div>
-            <span className="font-display font-bold text-xl text-[#0F4C35]">GrantRadar</span>
+            <span className="font-display font-bold text-xl text-[#0F4C35]">FundsRadar</span>
           </Link>
           <h1 className="font-display text-3xl font-bold text-[#0D1117]">Create your account</h1>
           <p className="text-gray-500 mt-2 text-sm">Start finding grants in minutes. Free forever, no card needed.</p>

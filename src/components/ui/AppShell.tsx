@@ -86,7 +86,7 @@ export default function AppShell({ children, orgName, plan }: {
                 <circle cx="8" cy="8" r="2.5" fill="#00C875"/>
               </svg>
             </div>
-            <span className="font-display font-bold text-white text-lg">GrantRadar</span>
+            <span className="font-display font-bold text-white text-lg">FundsRadar</span>
           </Link>
         </div>
 

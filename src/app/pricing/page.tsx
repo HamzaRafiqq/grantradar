@@ -308,7 +308,7 @@ export default function PricingPage() {
           <div className="grid md:grid-cols-2 gap-6">
             {[
               { q: 'Can I cancel any time?', a: "Yes. Cancel from your Settings page and you'll keep access until the end of your billing period." },
-              { q: 'Which countries are supported?', a: 'GrantRadar works for nonprofits in 50+ countries. We match grants from your country plus global funders like Gates Foundation, UNDP, and Comic Relief.' },
+              { q: 'Which countries are supported?', a: 'FundsRadar works for nonprofits in 50+ countries. We match grants from your country plus global funders like Gates Foundation, UNDP, and Comic Relief.' },
               { q: 'Can I switch currencies?', a: 'Yes — use the currency switcher above. You\'ll be charged in your chosen currency via Stripe. Prices shown are approximate equivalents.' },
               { q: 'What is the Agency plan for?', a: 'Grant consultants or umbrella organisations managing multiple nonprofits. One login, up to 10 profiles, and bulk matching across all of them.' },
             ].map(item => (

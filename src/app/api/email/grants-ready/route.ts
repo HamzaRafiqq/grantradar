@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const firstName = profile.full_name?.split(' ')[0] ?? 'there'
 
     await resend.emails.send({
-      from: 'GrantRadar <hello@grantredar.co.uk>',
+      from: 'FundsRadar <hello@grantredar.co.uk>',
       to: profile.email,
       subject: `Your grants are ready — we found ${count} matches`,
       html: `

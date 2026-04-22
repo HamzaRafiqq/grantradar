@@ -79,7 +79,7 @@ export default function BlogPage() {
               </button>
             </form>
             {status === 'error' && (
-              <p className="text-red-500 text-xs mt-3">Something went wrong — try again or email hello@grantradar.co.uk</p>
+              <p className="text-red-500 text-xs mt-3">Something went wrong — try again or email hello@fundsradar.co</p>
             )}
           </div>
         )}

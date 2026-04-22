@@ -11,8 +11,8 @@ export async function POST(req: NextRequest) {
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     await resend.emails.send({
-      from: 'GrantRadar Contact <hello@grantradar.co.uk>',
-      to: 'hello@grantradar.co.uk',
+      from: 'FundsRadar Contact <hello@fundsradar.co>',
+      to: 'hello@fundsradar.co',
       reply_to: email,
       subject: `Contact form: ${name}${charity ? ` — ${charity}` : ''}`,
       html: `

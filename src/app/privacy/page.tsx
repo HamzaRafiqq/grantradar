@@ -14,7 +14,7 @@ export default function PrivacyPage() {
           {[
             {
               title: '1. Who we are',
-              body: 'GrantRadar is operated by GrantRadar Ltd. We provide an AI-powered grant discovery platform for UK charities. Our contact email is hello@grantradar.co.uk.',
+              body: 'FundsRadar is operated by FundsRadar Ltd. We provide an AI-powered grant discovery platform for UK charities. Our contact email is hello@fundsradar.co.',
             },
             {
               title: '2. What data we collect',
@@ -62,7 +62,7 @@ We do not sell your data to any third parties.`,
 • Right to restriction — limit how we process your data.
 • Right to data portability — receive your data in a portable format.
 • Right to object — object to processing based on legitimate interests.
-To exercise any of these rights, email hello@grantradar.co.uk. We will respond within 30 days.`,
+To exercise any of these rights, email hello@fundsradar.co. We will respond within 30 days.`,
             },
             {
               title: '8. Cookies',
@@ -74,7 +74,7 @@ To exercise any of these rights, email hello@grantradar.co.uk. We will respond w
             },
             {
               title: '10. Contact',
-              body: 'If you have questions about this privacy policy or how we handle your data, please email hello@grantradar.co.uk. You also have the right to lodge a complaint with the Information Commissioner\'s Office (ICO) at ico.org.uk.',
+              body: 'If you have questions about this privacy policy or how we handle your data, please email hello@fundsradar.co. You also have the right to lodge a complaint with the Information Commissioner\'s Office (ICO) at ico.org.uk.',
             },
           ].map(section => (
             <div key={section.title} className="card">

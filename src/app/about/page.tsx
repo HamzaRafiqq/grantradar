@@ -12,7 +12,7 @@ export default function AboutPage() {
             Built for nonprofits that deserve better tools
           </h1>
           <p className="text-gray-500 text-lg leading-relaxed">
-            GrantRadar was built to help nonprofits and charities worldwide spend less time searching and more time doing.
+            FundsRadar was built to help nonprofits and charities worldwide spend less time searching and more time doing.
           </p>
         </div>
 
@@ -23,14 +23,14 @@ export default function AboutPage() {
               After working with dozens of nonprofits and charities, we kept seeing the same problem: brilliant organisations doing vital work were missing out on funding simply because they didn&apos;t have the time or resources to find it. Grant searching was manual, scattered across dozens of websites, and took 8–10 hours a week that most fundraising teams simply didn&apos;t have.
             </p>
             <p className="text-gray-600 leading-relaxed">
-              We built GrantRadar to change that. By combining real-time web search with Claude AI, we can match your nonprofit or charity to relevant grants in your country in seconds — not hours — and explain exactly why you qualify in plain English.
+              We built FundsRadar to change that. By combining real-time web search with Claude AI, we can match your nonprofit or charity to relevant grants in your country in seconds — not hours — and explain exactly why you qualify in plain English.
             </p>
           </div>
 
           <div className="card">
             <h2 className="font-display text-2xl font-bold text-[#0D1117] mb-4">Our mission</h2>
             <p className="text-gray-600 leading-relaxed">
-              Every nonprofit should have access to the same quality of grant intelligence as the largest organisations with dedicated development teams. GrantRadar levels the playing field — giving small and medium nonprofits an AI-powered fundraising team they couldn&apos;t otherwise afford, wherever they are in the world.
+              Every nonprofit should have access to the same quality of grant intelligence as the largest organisations with dedicated development teams. FundsRadar levels the playing field — giving small and medium nonprofits an AI-powered fundraising team they couldn&apos;t otherwise afford, wherever they are in the world.
             </p>
           </div>
 
@@ -56,8 +56,8 @@ export default function AboutPage() {
             <p className="text-white/80 leading-relaxed mb-4">
               We&apos;re always happy to talk to nonprofits, charities, grant consultants, or anyone interested in what we&apos;re building.
             </p>
-            <a href="mailto:hello@grantradar.co.uk" className="inline-flex items-center gap-2 bg-white text-[#0F4C35] font-semibold px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors text-sm">
-              hello@grantradar.co.uk
+            <a href="mailto:hello@fundsradar.co" className="inline-flex items-center gap-2 bg-white text-[#0F4C35] font-semibold px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors text-sm">
+              hello@fundsradar.co
             </a>
           </div>
         </div>

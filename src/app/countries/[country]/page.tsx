@@ -42,10 +42,10 @@ const COUNTRY_DATA: Record<string, {
       { value: '1.5M+', label: 'registered nonprofits in the US' },
       { value: '$500B+', label: 'given to nonprofits annually' },
       { value: '86,000+', label: 'active private foundations' },
-      { value: '$59/mo', label: 'GrantRadar Pro (USD)' },
+      { value: '$59/mo', label: 'FundsRadar Pro (USD)' },
     ],
     searches: ['nonprofit grants USA', '501c3 funding', 'foundation grants for nonprofits', 'US charity funding'],
-    tip: 'Most US foundations require 501(c)(3) status. GrantRadar checks your eligibility and flags which grants accept fiscal sponsors.',
+    tip: 'Most US foundations require 501(c)(3) status. FundsRadar checks your eligibility and flags which grants accept fiscal sponsors.',
   },
   'united-kingdom': {
     name: 'United Kingdom',
@@ -71,10 +71,10 @@ const COUNTRY_DATA: Record<string, {
       { value: '170,000+', label: 'registered charities in England & Wales' },
       { value: '£20B+', label: 'donated to UK charities annually' },
       { value: '10,000+', label: 'active grant programmes tracked' },
-      { value: '£49/mo', label: 'GrantRadar Pro (GBP)' },
+      { value: '£49/mo', label: 'FundsRadar Pro (GBP)' },
     ],
     searches: ['charity grants UK', 'funding for UK charities', 'grant finder UK', 'UK charity funding 2026'],
-    tip: 'UK charities registered with the Charity Commission are eligible for the widest range of grants. GrantRadar also surfaces Gift Aid-boosted funding opportunities.',
+    tip: 'UK charities registered with the Charity Commission are eligible for the widest range of grants. FundsRadar also surfaces Gift Aid-boosted funding opportunities.',
   },
   'canada': {
     name: 'Canada',
@@ -100,10 +100,10 @@ const COUNTRY_DATA: Record<string, {
       { value: '86,000+', label: 'registered charities in Canada' },
       { value: 'C$14B+', label: 'donated annually to Canadian charities' },
       { value: '5,000+', label: 'active Canadian grant programmes' },
-      { value: 'C$79/mo', label: 'GrantRadar Pro (CAD)' },
+      { value: 'C$79/mo', label: 'FundsRadar Pro (CAD)' },
     ],
     searches: ['charity grants Canada', 'nonprofit funding Canada', 'Canadian foundation grants', 'CRA registered charity grants'],
-    tip: 'Canadian charities registered with the CRA can access the broadest range of grants. GrantRadar flags which funders require CRA charitable status vs. nonprofit incorporation.',
+    tip: 'Canadian charities registered with the CRA can access the broadest range of grants. FundsRadar flags which funders require CRA charitable status vs. nonprofit incorporation.',
   },
   'australia': {
     name: 'Australia',
@@ -129,10 +129,10 @@ const COUNTRY_DATA: Record<string, {
       { value: '60,000+', label: 'registered charities in Australia' },
       { value: 'A$12B+', label: 'donated annually to Australian charities' },
       { value: '3,000+', label: 'active Australian grant programmes' },
-      { value: 'A$89/mo', label: 'GrantRadar Pro (AUD)' },
+      { value: 'A$89/mo', label: 'FundsRadar Pro (AUD)' },
     ],
     searches: ['charity grants Australia', 'NFP funding Australia', 'Australian foundation grants', 'ACNC registered charity grants'],
-    tip: 'ACNC registration and DGR (Deductible Gift Recipient) status opens up the most grant opportunities in Australia. GrantRadar filters grants by your DGR status.',
+    tip: 'ACNC registration and DGR (Deductible Gift Recipient) status opens up the most grant opportunities in Australia. FundsRadar filters grants by your DGR status.',
   },
   'india': {
     name: 'India',
@@ -158,10 +158,10 @@ const COUNTRY_DATA: Record<string, {
       { value: '3.3M+', label: 'registered NGOs in India' },
       { value: '$7B+', label: 'in CSR spending annually' },
       { value: '10,000+', label: 'active international grant programmes' },
-      { value: '$59/mo', label: 'GrantRadar Pro (USD)' },
+      { value: '$59/mo', label: 'FundsRadar Pro (USD)' },
     ],
     searches: ['NGO grants India', 'nonprofit funding India', 'CSR grants India', 'international grants for Indian NGOs'],
-    tip: 'Indian NGOs with FCRA registration can receive international funds. GrantRadar specifically flags which global funders accept FCRA-registered organisations.',
+    tip: 'Indian NGOs with FCRA registration can receive international funds. FundsRadar specifically flags which global funders accept FCRA-registered organisations.',
   },
   'germany': {
     name: 'Germany',
@@ -187,7 +187,7 @@ const COUNTRY_DATA: Record<string, {
       { value: '600,000+', label: 'registered associations in Germany' },
       { value: '€11B+', label: 'donated annually to German nonprofits' },
       { value: '2,000+', label: 'active German foundation grant programmes' },
-      { value: '€55/mo', label: 'GrantRadar Pro (EUR)' },
+      { value: '€55/mo', label: 'FundsRadar Pro (EUR)' },
     ],
     searches: ['Fördermittel gemeinnützige Organisationen', 'grants for German nonprofits', 'NGO funding Germany', 'Stiftungsförderung Deutschland'],
     tip: 'German nonprofits with Gemeinnützigkeit status (recognised charitable purpose) have access to tax-deductible donations and the widest range of foundation grants.',
@@ -207,8 +207,8 @@ export async function generateMetadata({ params }: { params: Promise<{ country: 
   const data = COUNTRY_DATA[country]
   if (!data) return {}
   return {
-    title: `Grants for Nonprofits in ${data.name} — GrantRadar`,
-    description: `Find grants for ${data.orgTerm} in ${data.name}. GrantRadar uses AI to match your organisation to hundreds of active grants — saving your team 8-10 hours every week.`,
+    title: `Grants for Nonprofits in ${data.name} — FundsRadar`,
+    description: `Find grants for ${data.orgTerm} in ${data.name}. FundsRadar uses AI to match your organisation to hundreds of active grants — saving your team 8-10 hours every week.`,
     keywords: data.searches.join(', '),
   }
 }
@@ -232,7 +232,7 @@ export default async function CountryGrantsPage({ params }: { params: Promise<{ 
             Find Grants for {data.orgTerm.charAt(0).toUpperCase() + data.orgTerm.slice(1)} in {data.name}
           </h1>
           <p className="text-white/80 text-lg max-w-2xl mx-auto mb-8">
-            GrantRadar uses AI to match your organisation to hundreds of active grants in {data.name} — explaining your eligibility in plain English and helping you draft applications.
+            FundsRadar uses AI to match your organisation to hundreds of active grants in {data.name} — explaining your eligibility in plain English and helping you draft applications.
           </p>
           <Link
             href="/signup"
@@ -268,7 +268,7 @@ export default async function CountryGrantsPage({ params }: { params: Promise<{ 
           <h2 className="font-display text-3xl font-bold text-[#0D1117] mb-2">
             Top grant funders in {data.name}
           </h2>
-          <p className="text-gray-500 mb-8">GrantRadar tracks these funders and hundreds more, matching your profile automatically.</p>
+          <p className="text-gray-500 mb-8">FundsRadar tracks these funders and hundreds more, matching your profile automatically.</p>
           <div className="grid sm:grid-cols-2 gap-4">
             {data.topFunders.map((f, i) => (
               <div key={f.name} className="card flex items-start gap-4">
@@ -287,10 +287,10 @@ export default async function CountryGrantsPage({ params }: { params: Promise<{ 
           </div>
         </section>
 
-        {/* How GrantRadar works */}
+        {/* How FundsRadar works */}
         <section className="bg-[#0F4C35] rounded-2xl p-8 md:p-12 text-white">
           <h2 className="font-display text-3xl font-bold mb-8 text-center">
-            How GrantRadar works for {data.name}
+            How FundsRadar works for {data.name}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {[
@@ -368,7 +368,7 @@ export default async function CountryGrantsPage({ params }: { params: Promise<{ 
 
         {/* SEO links to other countries */}
         <section className="border-t border-gray-200 pt-10">
-          <h3 className="font-semibold text-[#0D1117] mb-4 text-sm">GrantRadar also works in:</h3>
+          <h3 className="font-semibold text-[#0D1117] mb-4 text-sm">FundsRadar also works in:</h3>
           <div className="flex flex-wrap gap-2">
             {Object.values(COUNTRY_DATA)
               .filter(c => c.slug !== country)

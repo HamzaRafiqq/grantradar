@@ -57,7 +57,7 @@ export default function AlertPreferences() {
   return (
     <div className="card">
       <h2 className="font-display text-lg font-semibold text-[#0D1117] mb-1">Alert Preferences</h2>
-      <p className="text-gray-400 text-sm mb-5">Choose which emails you receive from GrantRadar</p>
+      <p className="text-gray-400 text-sm mb-5">Choose which emails you receive from FundsRadar</p>
       <div className="space-y-4">
         {prefItems.map(item => (
           <div key={item.key} className="flex items-start justify-between gap-4">

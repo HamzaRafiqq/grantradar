@@ -73,7 +73,7 @@ const steps = [
 
 const testimonials = [
   {
-    quote: "GrantRadar found us four grants we had no idea existed. We submitted two applications and won one within a month. The AI eligibility explanations saved us hours of reading through criteria.",
+    quote: "FundsRadar found us four grants we had no idea existed. We submitted two applications and won one within a month. The AI eligibility explanations saved us hours of reading through criteria.",
     name: 'Sarah Mitchell',
     role: 'Fundraising Manager',
     org: 'Brightside Youth Trust, Manchester 🇬🇧',
@@ -94,7 +94,7 @@ const testimonials = [
     initials: 'PS',
   },
   {
-    quote: "As a small community nonprofit in Melbourne, we used to spend days manually searching for funding. GrantRadar surfaces Australian grants we qualify for automatically. It's been a game changer.",
+    quote: "As a small community nonprofit in Melbourne, we used to spend days manually searching for funding. FundsRadar surfaces Australian grants we qualify for automatically. It's been a game changer.",
     name: 'Lena Hartmann',
     role: 'CEO',
     org: 'Southside Community Hub, Melbourne 🇦🇺',
@@ -129,7 +129,7 @@ export default function LandingPage() {
             <span className="text-white">Stop searching. Start winning.</span>
           </h1>
           <p className="text-white/80 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            GrantRadar matches your nonprofit or charity to hundreds of grants in your country using AI, explains your eligibility in plain English, and helps you draft applications — saving your team 8–10 hours every week.
+            FundsRadar matches your nonprofit or charity to hundreds of grants in your country using AI, explains your eligibility in plain English, and helps you draft applications — saving your team 8–10 hours every week.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup" className="bg-white text-[#0F4C35] px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-colors duration-200 inline-flex items-center justify-center gap-2 w-full sm:w-auto">
@@ -352,7 +352,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
             {/* Brand */}
             <div className="md:col-span-2">
-              <div className="font-display font-bold text-white text-lg mb-1">GrantRadar</div>
+              <div className="font-display font-bold text-white text-lg mb-1">FundsRadar</div>
               <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem' }}>
                 AI-powered grant discovery for nonprofits worldwide
               </p>
@@ -377,10 +377,10 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-white/10 pt-6 text-xs text-center flex flex-col sm:flex-row items-center justify-center gap-3">
-            <span>© 2026 GrantRadar. All rights reserved.</span>
+            <span>© 2026 FundsRadar. All rights reserved.</span>
             <span className="hidden sm:inline text-white/20">·</span>
-            <a href="mailto:hello@grantradar.co.uk" className="text-white/50 hover:text-white transition-colors">
-              hello@grantradar.co.uk
+            <a href="mailto:hello@fundsradar.co" className="text-white/50 hover:text-white transition-colors">
+              hello@fundsradar.co
             </a>
           </div>
         </div>

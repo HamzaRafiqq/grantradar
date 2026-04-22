@@ -16,8 +16,8 @@ const PRICES = {
 }
 
 const PLAN_NAMES = {
-  pro: { monthly: 'GrantRadar Pro (Monthly)', annual: 'GrantRadar Pro (Annual)' },
-  agency: { monthly: 'GrantRadar Agency (Monthly)', annual: 'GrantRadar Agency (Annual)' },
+  pro: { monthly: 'FundsRadar Pro (Monthly)', annual: 'FundsRadar Pro (Annual)' },
+  agency: { monthly: 'FundsRadar Agency (Monthly)', annual: 'FundsRadar Agency (Annual)' },
 }
 
 export async function POST(req: NextRequest) {

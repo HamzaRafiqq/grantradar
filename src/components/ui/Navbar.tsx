@@ -25,7 +25,7 @@ export default function Navbar() {
               <line x1="16" y1="9" x2="18" y2="9" stroke="#00C875" strokeWidth="1.5" strokeLinecap="round"/>
             </svg>
           </div>
-          <span className="font-display font-bold text-xl text-[#0F4C35]">GrantRadar</span>
+          <span className="font-display font-bold text-xl text-[#0F4C35]">FundsRadar</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">

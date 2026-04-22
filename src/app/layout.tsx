@@ -3,8 +3,8 @@ import Script from 'next/script'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'GrantRadar — Find Grants Your Nonprofit is Missing',
-  description: 'GrantRadar matches your nonprofit to hundreds of grants worldwide using AI — saving your team 8-10 hours every week.',
+  title: 'FundsRadar — Find Grants Your Nonprofit is Missing',
+  description: 'FundsRadar matches your nonprofit to hundreds of grants worldwide using AI — saving your team 8-10 hours every week.',
   keywords: 'nonprofit grants, grant finder, charity funding, grant tracker, nonprofit grants worldwide, NGO funding',
 }
 

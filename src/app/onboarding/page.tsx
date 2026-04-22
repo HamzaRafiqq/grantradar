@@ -255,7 +255,7 @@ export default function OnboardingPage() {
                 <circle cx="9" cy="9" r="3" fill="#00C875"/>
               </svg>
             </div>
-            <span className="font-display font-bold text-xl text-[#0F4C35]">GrantRadar</span>
+            <span className="font-display font-bold text-xl text-[#0F4C35]">FundsRadar</span>
           </div>
         </div>
 
@@ -281,7 +281,7 @@ export default function OnboardingPage() {
                 <line x1="16" y1="25" x2="16" y2="29" stroke="#0F4C35" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </div>
-            <h1 className="font-display text-2xl font-bold text-[#0D1117] mb-3">Welcome to GrantRadar</h1>
+            <h1 className="font-display text-2xl font-bold text-[#0D1117] mb-3">Welcome to FundsRadar</h1>
             <p className="text-gray-500 text-sm leading-relaxed mb-6 max-w-sm mx-auto">
               Tell us about your nonprofit or charity so our AI can find the grants you&apos;re genuinely eligible for — in your country, in your currency.
             </p>
