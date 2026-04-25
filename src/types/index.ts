@@ -67,6 +67,11 @@ export interface Grant {
   region?: string
   currency?: string
   amount_usd?: number
+  // 360Giving / anonymisation fields
+  public_title?: string | null
+  public_description?: string | null
+  source?: string | null
+  funder_type?: string | null
 }
 
 export interface GrantMatch {

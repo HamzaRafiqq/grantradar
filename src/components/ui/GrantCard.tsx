@@ -107,6 +107,12 @@ export default function GrantCard({ match, isLocked = false, plan = 'free', orgC
     setTimeout(() => setCopied(false), 2000)
   }
 
+  // Anonymise for free/starter users when public variants are available
+  const isAnon = (plan === 'free' || plan === 'starter') && !!match.grant.public_title
+  const displayName   = isAnon ? (match.grant.public_title ?? match.grant.name) : match.grant.name
+  const displayFunder = isAnon ? 'A UK Funder' : match.grant.funder
+  const displayDesc   = isAnon ? (match.grant.public_description ?? match.grant.description) : match.grant.description
+
   const eligibilityBullets = match.grant.eligibility_criteria
     ? match.grant.eligibility_criteria.split(/[.;]/).map(s => s.trim()).filter(s => s.length > 10).slice(0, 3)
     : []
@@ -153,8 +159,15 @@ export default function GrantCard({ match, isLocked = false, plan = 'free', orgC
 
         {/* Title + funder + deadline */}
         <div>
-          <h3 className="font-display font-semibold text-[#0D1117] text-base leading-snug">{match.grant.name}</h3>
-          <p className="text-gray-400 text-xs mt-0.5">{match.grant.funder}</p>
+          <h3 className="font-display font-semibold text-[#0D1117] text-base leading-snug">
+            {displayName}
+            {isAnon && (
+              <span className="ml-2 text-[10px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full align-middle">
+                Upgrade to reveal
+              </span>
+            )}
+          </h3>
+          <p className="text-gray-400 text-xs mt-0.5">{displayFunder}</p>
           <div className="flex items-center gap-2 mt-2">
             <DeadlineBadge days={days} />
             {match.grant.deadline && (
@@ -192,8 +205,8 @@ export default function GrantCard({ match, isLocked = false, plan = 'free', orgC
         </div>
 
         {/* Description */}
-        {match.grant.description && (
-          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{match.grant.description}</p>
+        {displayDesc && (
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{displayDesc}</p>
         )}
 
         {/* Sector + country tags */}
@@ -300,7 +313,14 @@ export default function GrantCard({ match, isLocked = false, plan = 'free', orgC
             >
               Full details
             </Link>
-            {match.grant.application_url && (
+            {isAnon ? (
+              <Link
+                href="/pricing"
+                className="flex-1 bg-[#0F4C35] text-white text-xs font-medium py-1.5 px-3 rounded-lg hover:bg-[#0c3d2a] transition-colors text-center"
+              >
+                Upgrade to Apply →
+              </Link>
+            ) : match.grant.application_url ? (
               <a
                 href={match.grant.application_url}
                 target="_blank"
@@ -309,11 +329,16 @@ export default function GrantCard({ match, isLocked = false, plan = 'free', orgC
               >
                 Apply Now →
               </a>
-            )}
+            ) : null}
           </div>
-          {match.grant.application_url && (
+          {!isAnon && match.grant.application_url && (
             <p className="text-[10px] text-gray-400 text-center">
               Opens funder&apos;s website — search for this grant once there
+            </p>
+          )}
+          {isAnon && (
+            <p className="text-[10px] text-gray-400 text-center">
+              Upgrade to Pro to reveal the funder and apply directly
             </p>
           )}
         </div>
