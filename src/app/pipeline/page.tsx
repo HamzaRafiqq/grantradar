@@ -10,26 +10,32 @@ export default async function PipelinePage() {
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  const { data: org } = await supabase.from('organisations').select('*').eq('user_id', user.id).single()
+  const { data: org }     = await supabase.from('organisations').select('*').eq('user_id', user.id).single()
   if (!org) redirect('/onboarding')
-
-  const isPro = profile?.plan === 'pro'
 
   const { data: matches } = await supabase
     .from('grant_matches')
     .select('*, grant:grants(*)')
     .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
 
-  const typedMatches = (matches ?? []) as unknown as GrantMatchWithGrant[]
+  const plan = profile?.plan ?? 'free'
+  const typedMatches = (matches ?? []) as unknown as (GrantMatchWithGrant & {
+    amount_requested?: number | null
+    activity_log?: object[]
+    deadline_set?: string | null
+  })[]
 
   return (
-    <AppShell orgName={org.name} plan={profile?.plan}>
+    <AppShell orgName={org.name} plan={plan}>
       <div className="px-4 sm:px-6 py-8">
         <div className="mb-8">
           <h1 className="font-display text-2xl font-bold text-[#0D1117]">Application Pipeline</h1>
-          <p className="text-gray-400 text-sm mt-1">Drag grants between columns to track your progress</p>
+          <p className="text-gray-400 text-sm mt-1">
+            Drag cards between columns to track your progress · Click any card to edit notes and details
+          </p>
         </div>
-        <PipelineBoard matches={typedMatches} isPro={isPro} />
+        <PipelineBoard matches={typedMatches} plan={plan} />
       </div>
     </AppShell>
   )

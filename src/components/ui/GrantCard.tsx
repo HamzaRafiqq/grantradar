@@ -365,10 +365,22 @@ export default function GrantCard({
 
             <div className="flex items-center gap-2">
               <Link
+                href="/pipeline"
+                className="flex items-center justify-center gap-1 border border-gray-200 text-gray-600 text-xs font-medium py-1.5 px-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+                title="Track in pipeline"
+              >
+                <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+                  <rect x="1" y="2" width="3" height="10" rx="1" stroke="currentColor" strokeWidth="1.4"/>
+                  <rect x="5.5" y="5" width="3" height="7" rx="1" stroke="currentColor" strokeWidth="1.4"/>
+                  <rect x="10" y="7" width="3" height="5" rx="1" stroke="currentColor" strokeWidth="1.4"/>
+                </svg>
+                Track
+              </Link>
+              <Link
                 href={`/grants/${match.grant.id}`}
                 className="flex-1 border border-gray-200 text-gray-600 text-xs font-medium py-1.5 px-3 rounded-lg hover:bg-gray-50 transition-colors text-center"
               >
-                Full details
+                Details
               </Link>
 
               {/* Apply button — locked or visible */}
