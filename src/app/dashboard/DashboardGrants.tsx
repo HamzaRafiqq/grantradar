@@ -294,10 +294,22 @@ export default function DashboardGrants({ matches, plan, orgCountry }: Props) {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {filtered.map((match, i) => (
-            <GrantCard key={match.id} match={match} isLocked={plan === 'free' && i >= 3} plan={plan} orgCountry={orgCountry} />
-          ))}
+          {filtered.map((match, i) => {
+            const isLocked = plan === 'free' && i >= 3
+            const lockedCount = plan === 'free' ? Math.max(0, filtered.length - 3) : 0
+            return (
+              <GrantCard
+                key={match.id}
+                match={match}
+                isLocked={isLocked}
+                lockedCount={lockedCount}
+                plan={plan}
+                orgCountry={orgCountry}
+              />
+            )
+          })}
         </div>
+
       )}
     </div>
   )
