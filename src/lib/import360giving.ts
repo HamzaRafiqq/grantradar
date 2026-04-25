@@ -4,6 +4,9 @@
  *   - src/app/api/cron/import-grants/route.ts  (Vercel cron)
  */
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const XLSX = require('xlsx') as typeof import('xlsx')
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface ImportResult {
@@ -263,12 +266,37 @@ function rowFromJSON(g: any, publisherName: string): GrantRow | null {
   }
 }
 
+// ── XLSX parser ───────────────────────────────────────────────────────────────
+
+function parseXLSX(buffer: ArrayBuffer, publisherName: string): GrantRow[] {
+  const workbook = XLSX.read(buffer, { type: 'array' })
+  const rows: GrantRow[] = []
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName]
+    const records: Record<string, string>[] = XLSX.utils.sheet_to_json(sheet, { defval: '' })
+    if (records.length === 0) continue
+    // Only process sheets that look like 360Giving grant data
+    const firstRow = records[0]
+    if (!firstRow['Identifier'] && !firstRow['Title'] && !firstRow['Funding Org:Name']) continue
+    for (const rec of records) {
+      // Coerce all values to strings
+      const strRec: Record<string, string> = {}
+      for (const [k, v] of Object.entries(firstRow)) {
+        strRec[k] = String((rec as Record<string, unknown>)[k] ?? '')
+      }
+      const row = rowFromCSV(strRec, publisherName)
+      if (row) rows.push(row)
+    }
+  }
+  return rows
+}
+
 // ── Fetch + parse one dataset ─────────────────────────────────────────────────
 
 async function fetchAndParse(url: string, publisherName: string): Promise<GrantRow[]> {
   const ext = urlExt(url)
   const res = await fetch(url, {
-    signal: AbortSignal.timeout(30_000),
+    signal: AbortSignal.timeout(45_000),
     headers: { 'User-Agent': 'FundsRadar/1.0 (hello@fundsradar.co)' },
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -287,6 +315,11 @@ async function fetchAndParse(url: string, publisherName: string): Promise<GrantR
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mapped: (GrantRow | null)[] = grants.map((g: any) => rowFromJSON(g, publisherName))
     return mapped.filter((row): row is GrantRow => row !== null)
+  }
+
+  if (ext === 'xlsx' || ext === 'xls') {
+    const buffer = await res.arrayBuffer()
+    return parseXLSX(buffer, publisherName)
   }
 
   throw new Error(`Unsupported format: ${ext}`)
@@ -354,7 +387,7 @@ export async function runImport(supabase: any, opts: ImportOptions = {}): Promis
     if (since && lastPub < since) continue
     for (const dist of entry.distribution ?? []) {
       const ext = urlExt(dist.downloadURL)
-      if (ext === 'csv' || ext === 'json') {
+      if (ext === 'csv' || ext === 'json' || ext === 'xlsx' || ext === 'xls') {
         jobs.push({ publisherName: pubName, url: dist.downloadURL, lastPublished: lastPub })
       }
     }
