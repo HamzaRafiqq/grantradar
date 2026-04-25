@@ -76,29 +76,29 @@ const testimonials = [
     quote: "FundsRadar found us four grants we had no idea existed. We submitted two applications and won one within a month. The AI eligibility explanations saved us hours of reading through criteria.",
     name: 'Sarah Mitchell',
     role: 'Fundraising Manager',
-    org: 'Brightside Youth Trust, Manchester 🇬🇧',
+    org: 'Brightside Youth Trust, Manchester',
     initials: 'SM',
-  },
-  {
-    quote: "We discovered seven foundation grants we'd never heard of in our first week. The country filter meant every result was actually relevant to us. Our team now spends time writing, not searching.",
-    name: 'Marcus Johnson',
-    role: 'Executive Director',
-    org: 'Chicago Education Alliance, Illinois 🇺🇸',
-    initials: 'MJ',
   },
   {
     quote: "The AI draft generator is genuinely impressive. It reads the grant criteria and writes an opening that actually sounds like us. Our success rate has gone up since we started using it.",
     name: 'Priya Sharma',
     role: 'Development Director',
-    org: 'Inclusive Arts Collective, London 🇬🇧',
+    org: 'Inclusive Arts Collective, London',
     initials: 'PS',
   },
   {
-    quote: "As a small community nonprofit in Melbourne, we used to spend days manually searching for funding. FundsRadar surfaces Australian grants we qualify for automatically. It's been a game changer.",
-    name: 'Lena Hartmann',
+    quote: "We were spending two days a week searching for grants manually. FundsRadar cut that to under an hour. The deadline alerts alone have saved us from missing three closing dates.",
+    name: 'James Okafor',
     role: 'CEO',
-    org: 'Southside Community Hub, Melbourne 🇦🇺',
-    initials: 'LH',
+    org: 'Community Roots Foundation, Birmingham',
+    initials: 'JO',
+  },
+  {
+    quote: "The Charity Commission auto-fill was brilliant — it pulled in all our details in seconds. We had our first grant matches within five minutes of signing up.",
+    name: 'Helen Cartwright',
+    role: 'Fundraising Lead',
+    org: 'Peaks & Valleys Trust, Sheffield',
+    initials: 'HC',
   },
 ]
 
@@ -109,7 +109,7 @@ const stats = [
   { value: '94%', label: 'Match accuracy rate' },
 ]
 
-const funders = ['Gates Foundation', 'National Lottery', 'Comic Relief', 'Ford Foundation', 'Esmée Fairbairn']
+const funders = ['National Lottery', 'Esmée Fairbairn', 'Comic Relief', 'Lloyds Bank Foundation', 'The Henry Smith Charity', 'Paul Hamlyn Foundation']
 
 export default function LandingPage() {
   return (
@@ -251,7 +251,7 @@ export default function LandingPage() {
             <h2 className="font-display text-3xl md:text-4xl font-bold text-[#0D1117] mb-4">
               Trusted by UK charities
             </h2>
-            <p className="text-gray-500 text-lg">Real results from real charity fundraising teams.</p>
+            <p className="text-gray-500 text-lg">Real results from UK charity fundraising teams.</p>
           </div>
         </ScrollReveal>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

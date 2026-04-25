@@ -1,120 +1,18 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Sector, AnnualIncome } from '@/types'
 
-// ── Country data ─────────────────────────────────────────────────────────────
-
-const TOP_COUNTRIES = [
-  'United States', 'United Kingdom', 'Canada', 'Australia', 'India',
-  'Germany', 'France', 'Netherlands', 'Ireland', 'New Zealand',
-]
-
-const ALL_COUNTRIES = [
-  'Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia',
-  'Austria','Azerbaijan','Bahrain','Bangladesh','Belgium','Bolivia','Bosnia',
-  'Botswana','Brazil','Bulgaria','Cambodia','Cameroon','Chile','China',
-  'Colombia','Costa Rica','Croatia','Cyprus','Czech Republic','Denmark',
-  'Ecuador','Egypt','El Salvador','Estonia','Ethiopia','Finland','Georgia',
-  'Ghana','Greece','Guatemala','Honduras','Hong Kong','Hungary','Iceland',
-  'Indonesia','Iran','Iraq','Israel','Italy','Jamaica','Japan','Jordan',
-  'Kazakhstan','Kenya','Kosovo','Kuwait','Kyrgyzstan','Latvia','Lebanon',
-  'Libya','Liechtenstein','Lithuania','Luxembourg','Malaysia','Malta',
-  'Mexico','Moldova','Monaco','Mongolia','Montenegro','Morocco','Mozambique',
-  'Myanmar','Namibia','Nepal','Nicaragua','Nigeria','North Macedonia',
-  'Norway','Oman','Pakistan','Palestine','Panama','Paraguay','Peru',
-  'Philippines','Poland','Portugal','Qatar','Romania','Russia','Rwanda',
-  'Saudi Arabia','Senegal','Serbia','Singapore','Slovakia','Slovenia',
-  'South Africa','South Korea','Spain','Sri Lanka','Sudan','Sweden',
-  'Switzerland','Syria','Taiwan','Tajikistan','Tanzania','Thailand',
-  'Tunisia','Turkey','Uganda','Ukraine','United Arab Emirates','Uruguay',
-  'Uzbekistan','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe',
-]
-
-const COUNTRIES = [...new Set([...TOP_COUNTRIES, ...ALL_COUNTRIES])].sort((a, b) => {
-  const ai = TOP_COUNTRIES.indexOf(a)
-  const bi = TOP_COUNTRIES.indexOf(b)
-  if (ai !== -1 && bi !== -1) return ai - bi
-  if (ai !== -1) return -1
-  if (bi !== -1) return 1
-  return a.localeCompare(b)
-})
-
-// ── Currency map ─────────────────────────────────────────────────────────────
-
-const CURRENCY_MAP: Record<string, { code: string; symbol: string }> = {
-  'United States': { code: 'USD', symbol: '$' },
-  'United Kingdom': { code: 'GBP', symbol: '£' },
-  'Canada': { code: 'CAD', symbol: 'C$' },
-  'Australia': { code: 'AUD', symbol: 'A$' },
-  'New Zealand': { code: 'NZD', symbol: 'NZ$' },
-  'India': { code: 'INR', symbol: '₹' },
-  'Japan': { code: 'JPY', symbol: '¥' },
-  'China': { code: 'CNY', symbol: '¥' },
-  'Brazil': { code: 'BRL', symbol: 'R$' },
-  'South Africa': { code: 'ZAR', symbol: 'R' },
-  'Switzerland': { code: 'CHF', symbol: 'CHF' },
-  'Norway': { code: 'NOK', symbol: 'kr' },
-  'Sweden': { code: 'SEK', symbol: 'kr' },
-  'Denmark': { code: 'DKK', symbol: 'kr' },
-  'Russia': { code: 'RUB', symbol: '₽' },
-  'South Korea': { code: 'KRW', symbol: '₩' },
-  'Mexico': { code: 'MXN', symbol: 'MX$' },
-  'Singapore': { code: 'SGD', symbol: 'S$' },
-  'Hong Kong': { code: 'HKD', symbol: 'HK$' },
-}
-
-const EUR_COUNTRIES = [
-  'Germany','France','Netherlands','Ireland','Italy','Spain','Portugal',
-  'Austria','Belgium','Finland','Greece','Luxembourg','Malta','Cyprus',
-  'Estonia','Latvia','Lithuania','Slovakia','Slovenia','Croatia',
-]
-
-function getCurrency(country: string) {
-  if (EUR_COUNTRIES.includes(country)) return { code: 'EUR', symbol: '€' }
-  return CURRENCY_MAP[country] ?? { code: 'USD', symbol: '$' }
-}
-
-// ── Registration label ────────────────────────────────────────────────────────
-
-function getRegistrationLabel(country: string) {
-  const labels: Record<string, string> = {
-    'United States': 'EIN Number (optional)',
-    'Canada': 'CRA Registration Number (optional)',
-    'Australia': 'ABN Number (optional)',
-  }
-  return labels[country] ?? 'Registration Number (optional)'
-}
-
-// ── Browser locale → country ──────────────────────────────────────────────────
-
-function detectCountry(): string {
-  try {
-    const lang = navigator.language || 'en'
-    const regionCode = new Intl.Locale(lang).region ?? ''
-    const regionMap: Record<string, string> = {
-      US: 'United States', GB: 'United Kingdom', CA: 'Canada', AU: 'Australia',
-      IN: 'India', DE: 'Germany', FR: 'France', NL: 'Netherlands',
-      IE: 'Ireland', NZ: 'New Zealand', ZA: 'South Africa', NG: 'Nigeria',
-      KE: 'Kenya', GH: 'Ghana', BR: 'Brazil', MX: 'Mexico', JP: 'Japan',
-      SG: 'Singapore', PH: 'Philippines', PK: 'Pakistan', BD: 'Bangladesh',
-    }
-    return regionMap[regionCode] ?? 'United States'
-  } catch {
-    return 'United States'
-  }
-}
-
 // ── Static data ───────────────────────────────────────────────────────────────
 
 const NONPROFIT_TYPES = [
-  'Registered Charity (UK)',
-  '501(c)(3) Nonprofit (USA)',
-  'Registered Nonprofit (Canada)',
-  'Incorporated Association (Australia)',
-  'NGO (International)',
+  'Registered Charity (England & Wales)',
+  'Registered Charity (Scotland)',
+  'Registered Charity (Northern Ireland)',
+  'Charitable Incorporated Organisation (CIO)',
+  'Community Interest Company (CIC)',
   'Community Group (Unregistered)',
   'Other',
 ]
@@ -133,9 +31,9 @@ const sectors: { value: Sector; label: string }[] = [
 ]
 
 const incomeOptions: { value: AnnualIncome; label: string }[] = [
-  { value: 'under_100k', label: 'Under 100,000 (small)' },
-  { value: '100k_500k', label: '100,000 – 500,000 (medium)' },
-  { value: 'over_500k', label: 'Over 500,000 (large)' },
+  { value: 'under_100k', label: 'Under £100,000 (small)' },
+  { value: '100k_500k', label: '£100,000 – £500,000 (medium)' },
+  { value: 'over_500k', label: 'Over £500,000 (large)' },
 ]
 
 // ── CC lookup types ───────────────────────────────────────────────────────────
@@ -175,24 +73,18 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [matchCount, setMatchCount] = useState(0)
   const [error, setError] = useState('')
-  const [countrySearch, setCountrySearch] = useState('')
-  const [countryOpen, setCountryOpen] = useState(false)
 
   // Charity Commission lookup state
   const [ccNumber, setCcNumber] = useState('')
   const [ccStatus, setCcStatus] = useState<CCStatus>('idle')
   const [ccData, setCcData] = useState<CCData | null>(null)
   const [ccConfirmed, setCcConfirmed] = useState(false)
-
-  // Track which fields were auto-filled for badge display
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set())
 
   const [form, setForm] = useState({
     name: '',
     sector: '' as Sector,
     location: '',
-    country: '',
-    currency: 'USD',
     annual_income: '' as AnnualIncome,
     nonprofit_type: '',
     registration_number: '',
@@ -200,47 +92,9 @@ export default function OnboardingPage() {
     current_projects: '',
   })
 
-  // Detect country on mount
-  useEffect(() => {
-    const detected = detectCountry()
-    const currency = getCurrency(detected)
-    setForm(f => ({ ...f, country: detected, currency: currency.code }))
-    setCountrySearch(detected)
-  }, [])
-
-  // Reset CC state if country changes away from UK
-  useEffect(() => {
-    if (form.country !== 'United Kingdom' && ccConfirmed) {
-      setCcConfirmed(false)
-      setCcStatus('idle')
-      setCcData(null)
-      setCcNumber('')
-      setAutoFilledFields(new Set())
-    }
-  }, [form.country, ccConfirmed])
-
-  function update(field: string, value: string | boolean) {
+  function update(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
   }
-
-  function selectCountry(country: string) {
-    const currency = getCurrency(country)
-    setForm(f => ({ ...f, country, currency: currency.code }))
-    setCountrySearch(country)
-    setCountryOpen(false)
-  }
-
-  const filteredCountries = useMemo(() =>
-    COUNTRIES.filter(c => c.toLowerCase().includes(countrySearch.toLowerCase())),
-    [countrySearch]
-  )
-
-  const currency = useMemo(() => getCurrency(form.country), [form.country])
-
-  const incomeWithCurrency = incomeOptions.map(o => ({
-    ...o,
-    label: o.label.replace(/(\d[\d,]+)/g, `${currency.symbol}$1`),
-  }))
 
   // ── Charity Commission lookup ─────────────────────────────────────────────
 
@@ -256,18 +110,9 @@ export default function OnboardingPage() {
         body: JSON.stringify({ registrationNumber: ccNumber.trim() }),
       })
 
-      if (res.status === 400) {
-        setCcStatus('invalid')
-        return
-      }
-      if (res.status === 404) {
-        setCcStatus('notfound')
-        return
-      }
-      if (!res.ok) {
-        setCcStatus('error')
-        return
-      }
+      if (res.status === 400) { setCcStatus('invalid'); return }
+      if (res.status === 404) { setCcStatus('notfound'); return }
+      if (!res.ok) { setCcStatus('error'); return }
 
       const data: CCData = await res.json()
       setCcData(data)
@@ -283,27 +128,12 @@ export default function OnboardingPage() {
     const filled = new Set<string>()
     const updates: Partial<typeof form> = {}
 
-    if (ccData.name) {
-      updates.name = ccData.name
-      filled.add('name')
-    }
-    if (ccData.registrationNumber) {
-      updates.registration_number = ccData.registrationNumber
-    }
-    if (ccData.annualIncome) {
-      updates.annual_income = ccData.annualIncome as AnnualIncome
-      filled.add('annual_income')
-    }
-    if (ccData.location) {
-      updates.location = ccData.location
-      filled.add('location')
-    }
-    if (ccData.activities) {
-      updates.beneficiaries = ccData.activities
-      filled.add('beneficiaries')
-    }
-    // Auto-set UK charity type
-    updates.nonprofit_type = 'Registered Charity (UK)'
+    if (ccData.name) { updates.name = ccData.name; filled.add('name') }
+    if (ccData.registrationNumber) updates.registration_number = ccData.registrationNumber
+    if (ccData.annualIncome) { updates.annual_income = ccData.annualIncome as AnnualIncome; filled.add('annual_income') }
+    if (ccData.location) { updates.location = ccData.location; filled.add('location') }
+    if (ccData.activities) { updates.beneficiaries = ccData.activities; filled.add('beneficiaries') }
+    updates.nonprofit_type = 'Registered Charity (England & Wales)'
 
     setForm(f => ({ ...f, ...updates }))
     setAutoFilledFields(filled)
@@ -317,7 +147,6 @@ export default function OnboardingPage() {
     setCcData(null)
     setCcNumber('')
     setAutoFilledFields(new Set())
-    // Clear auto-filled form values
     setForm(f => ({
       ...f,
       name: '',
@@ -347,14 +176,14 @@ export default function OnboardingPage() {
         name: form.name,
         sector: form.sector,
         location: form.location,
-        country: form.country,
-        currency: form.currency,
+        country: 'United Kingdom',
+        currency: 'GBP',
         annual_income: form.annual_income,
         nonprofit_type: form.nonprofit_type,
         charity_number: form.registration_number || null,
         beneficiaries: form.beneficiaries,
         current_projects: form.current_projects,
-        registered_charity: ['Registered Charity (UK)', '501(c)(3) Nonprofit (USA)', 'Registered Nonprofit (Canada)', 'Incorporated Association (Australia)'].includes(form.nonprofit_type),
+        registered_charity: ['Registered Charity (England & Wales)', 'Registered Charity (Scotland)', 'Registered Charity (Northern Ireland)', 'Charitable Incorporated Organisation (CIO)'].includes(form.nonprofit_type),
         user_id: user.id,
       })
       .select()
@@ -380,11 +209,10 @@ export default function OnboardingPage() {
     setStep(4)
   }
 
-  const isUK = form.country === 'United Kingdom'
-
   return (
     <div className="min-h-screen bg-[#F4F6F5] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-xl">
+
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2">
@@ -407,7 +235,7 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 1 — Welcome */}
+        {/* ── Step 1: Welcome ── */}
         {step === 1 && (
           <div className="card text-center">
             <div className="w-16 h-16 rounded-full bg-[#E8F2ED] flex items-center justify-center mx-auto mb-6">
@@ -420,15 +248,18 @@ export default function OnboardingPage() {
                 <line x1="16" y1="25" x2="16" y2="29" stroke="#0F4C35" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </div>
+            <div className="inline-flex items-center gap-1.5 bg-[#E8F2ED] px-3 py-1 rounded-full text-xs font-semibold text-[#0F4C35] mb-4">
+              🇬🇧 Built for UK charities
+            </div>
             <h1 className="font-display text-2xl font-bold text-[#0D1117] mb-3">Welcome to FundsRadar</h1>
             <p className="text-gray-500 text-sm leading-relaxed mb-6 max-w-sm mx-auto">
-              Tell us about your charity so our AI can find the grants you&apos;re genuinely eligible for — matched to your sector, size, and location.
+              Tell us about your charity and our AI will find the UK grants you&apos;re genuinely eligible for — matched to your sector, size, and location.
             </p>
             <div className="grid grid-cols-3 gap-4 mb-8 text-center">
               {[
                 { value: '3 min', label: 'Setup time' },
-                { value: '2,400+', label: 'Grants scanned' },
-                { value: '50+', label: 'Countries' },
+                { value: '1,000+', label: 'UK grants' },
+                { value: '94%', label: 'Match accuracy' },
               ].map((stat) => (
                 <div key={stat.label} className="bg-[#F4F6F5] rounded-xl p-3">
                   <div className="font-bold text-[#0F4C35] text-lg">{stat.value}</div>
@@ -445,11 +276,11 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 2 — Form */}
+        {/* ── Step 2: Form ── */}
         {step === 2 && (
           <div className="card">
             <h2 className="font-display text-2xl font-bold text-[#0D1117] mb-1">Tell us about your charity</h2>
-            <p className="text-gray-500 text-sm mb-6">This helps us find grants you&apos;re actually eligible for.</p>
+            <p className="text-gray-500 text-sm mb-6">This helps us find UK grants you&apos;re actually eligible for.</p>
 
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm mb-4">{error}</div>
@@ -457,232 +288,147 @@ export default function OnboardingPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
 
-              {/* Country — searchable combobox (first so CC lookup can appear immediately) */}
-              <div className="relative">
-                <label className="label">Country <span className="text-[#0F4C35] text-xs">(auto-detected)</span></label>
-                <input
-                  required
-                  className="input"
-                  placeholder="Search your country..."
-                  value={countrySearch}
-                  onFocus={() => setCountryOpen(true)}
-                  onChange={(e) => {
-                    setCountrySearch(e.target.value)
-                    setCountryOpen(true)
-                  }}
-                />
-                {countryOpen && filteredCountries.length > 0 && (
-                  <div className="absolute z-50 w-full mt-1 bg-white rounded-xl shadow-lg border border-gray-200 max-h-52 overflow-y-auto">
-                    {filteredCountries.slice(0, 30).map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-[#E8F2ED] transition-colors ${TOP_COUNTRIES.includes(c) ? 'font-medium' : ''} ${c === form.country ? 'bg-[#E8F2ED] text-[#0F4C35]' : 'text-gray-700'}`}
-                        onClick={() => selectCountry(c)}
-                      >
-                        {TOP_COUNTRIES.includes(c) && <span className="text-[#0F4C35] mr-1.5">★</span>}
-                        {c}
-                      </button>
-                    ))}
+              {/* ── Charity Commission auto-fill ── */}
+              <div className="rounded-xl border border-[#0F4C35]/25 bg-[#E8F2ED]/60 p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-5 h-5 rounded-full bg-[#0F4C35] flex items-center justify-center flex-shrink-0">
+                    <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                      <path d="M1.5 4.5l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   </div>
-                )}
-                {form.country && (
-                  <div className="mt-1.5 flex items-center gap-1.5">
-                    <span className="text-xs text-gray-400">Currency auto-set to</span>
-                    <span className="text-xs font-semibold text-[#0F4C35] bg-[#E8F2ED] px-2 py-0.5 rounded-full">
-                      {currency.code} ({currency.symbol})
-                    </span>
-                  </div>
-                )}
-              </div>
+                  <p className="text-sm font-semibold text-[#0F4C35]">Auto-fill from Charity Commission 🇬🇧</p>
+                </div>
+                <p className="text-xs text-gray-600 mb-3 ml-7">Enter your charity number to instantly fill your profile from official records.</p>
 
-              {/* ── UK Charity Commission auto-fill ── */}
-              {isUK && (
-                <div className="rounded-xl border border-[#0F4C35]/25 bg-[#E8F2ED]/60 p-4">
-                  {/* Header */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-5 h-5 rounded-full bg-[#0F4C35] flex items-center justify-center flex-shrink-0">
-                      <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
-                        <path d="M1.5 4.5l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                {ccConfirmed && ccData ? (
+                  <div className="flex items-start gap-3 bg-white rounded-xl px-4 py-3 border border-[#0F4C35]/20">
+                    <div className="w-6 h-6 rounded-full bg-[#0F4C35] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                        <path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </div>
-                    <p className="text-sm font-semibold text-[#0F4C35]">Auto-fill from Charity Commission 🇬🇧</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[#0D1117] truncate">{ccData.name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Charity #{ccData.registrationNumber}
+                        {ccData.incomeDisplay && <> · Income {ccData.incomeDisplay}</>}
+                      </p>
+                      {ccData.geographicSpread && <p className="text-xs text-gray-400 mt-0.5">{ccData.geographicSpread}</p>}
+                    </div>
+                    <button type="button" onClick={resetCcLookup} className="text-xs text-gray-400 hover:text-gray-600 underline whitespace-nowrap flex-shrink-0">
+                      Change
+                    </button>
                   </div>
-                  <p className="text-xs text-gray-600 mb-3 ml-7">
-                    Enter your charity number to instantly fill your profile from official records.
-                  </p>
-
-                  {ccConfirmed && ccData ? (
-                    /* ── Confirmed state ── */
-                    <div className="flex items-start gap-3 bg-white rounded-xl px-4 py-3 border border-[#0F4C35]/20">
-                      <div className="w-6 h-6 rounded-full bg-[#0F4C35] flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                          <path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#0D1117] truncate">{ccData.name}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          Charity #{ccData.registrationNumber}
-                          {ccData.incomeDisplay && <> · Income {ccData.incomeDisplay}</>}
-                        </p>
-                        {ccData.geographicSpread && (
-                          <p className="text-xs text-gray-400 mt-0.5">{ccData.geographicSpread}</p>
-                        )}
-                      </div>
+                ) : (
+                  <>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        className="input flex-1"
+                        placeholder="e.g. 1156234"
+                        value={ccNumber}
+                        onChange={e => { setCcNumber(e.target.value); if (ccStatus !== 'idle') setCcStatus('idle') }}
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); verifyCharity() } }}
+                      />
                       <button
                         type="button"
-                        onClick={resetCcLookup}
-                        className="text-xs text-gray-400 hover:text-gray-600 underline whitespace-nowrap flex-shrink-0"
+                        onClick={verifyCharity}
+                        disabled={!ccNumber.trim() || ccStatus === 'loading'}
+                        className="btn-primary px-4 py-2 text-sm disabled:opacity-60 whitespace-nowrap flex items-center gap-1.5"
                       >
-                        Change
+                        {ccStatus === 'loading' ? (
+                          <>
+                            <svg className="animate-spin flex-shrink-0" width="14" height="14" viewBox="0 0 18 18" fill="none">
+                              <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="2" strokeDasharray="22" strokeDashoffset="8"/>
+                            </svg>
+                            Checking...
+                          </>
+                        ) : 'Verify Charity'}
                       </button>
                     </div>
-                  ) : (
-                    /* ── Lookup UI ── */
-                    <>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          className="input flex-1"
-                          placeholder="e.g. 1156234"
-                          value={ccNumber}
-                          onChange={e => {
-                            setCcNumber(e.target.value)
-                            if (ccStatus !== 'idle') setCcStatus('idle')
-                          }}
-                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); verifyCharity() } }}
-                        />
-                        <button
-                          type="button"
-                          onClick={verifyCharity}
-                          disabled={!ccNumber.trim() || ccStatus === 'loading'}
-                          className="btn-primary px-4 py-2 text-sm disabled:opacity-60 whitespace-nowrap flex items-center gap-1.5"
-                        >
-                          {ccStatus === 'loading' ? (
-                            <>
-                              <svg className="animate-spin flex-shrink-0" width="14" height="14" viewBox="0 0 18 18" fill="none">
-                                <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="2" strokeDasharray="22" strokeDashoffset="8"/>
-                              </svg>
-                              Checking...
-                            </>
-                          ) : (
-                            'Verify Charity'
-                          )}
-                        </button>
-                      </div>
 
-                      {/* Status messages */}
-                      {ccStatus === 'notfound' && (
-                        <div className="mt-2 flex items-start gap-2 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">
-                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0 mt-0.5">
-                            <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5"/>
-                            <path d="M7 4v3M7 9.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                          </svg>
-                          Charity not found. Please check your number or fill in your details manually below.
-                        </div>
-                      )}
-                      {ccStatus === 'invalid' && (
-                        <div className="mt-2 flex items-start gap-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
-                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0 mt-0.5">
-                            <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5"/>
-                            <path d="M7 4v3M7 9.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                          </svg>
-                          Please enter a valid charity number (6–8 digits).
-                        </div>
-                      )}
-                      {ccStatus === 'error' && (
-                        <div className="mt-2 flex items-start gap-2 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">
-                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0 mt-0.5">
-                            <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5"/>
-                            <path d="M7 4v3M7 9.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                          </svg>
-                          Couldn&apos;t reach the Charity Commission. Please fill in your details manually.
-                        </div>
-                      )}
-
-                      {/* Preview card */}
-                      {ccStatus === 'found' && ccData && (
-                        <div className="mt-3 bg-white rounded-xl border border-[#0F4C35]/25 overflow-hidden">
-                          <div className="px-4 pt-3 pb-1">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Is this your charity?</p>
-                            <div className="flex items-start gap-2 mb-2">
-                              <div className="w-8 h-8 rounded-lg bg-[#E8F2ED] flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                  <rect x="2" y="3" width="12" height="10" rx="2" stroke="#0F4C35" strokeWidth="1.5"/>
-                                  <path d="M5 7h6M5 10h4" stroke="#0F4C35" strokeWidth="1.25" strokeLinecap="round"/>
-                                </svg>
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-semibold text-[#0D1117] text-sm leading-tight">{ccData.name}</p>
-                                <p className="text-xs text-gray-400 mt-0.5">
-                                  Registered #{ccData.registrationNumber}
-                                  {ccData.incomeDisplay && <> · Annual income {ccData.incomeDisplay}</>}
-                                </p>
-                              </div>
-                            </div>
-                            {ccData.activities && (
-                              <p className="text-xs text-gray-600 leading-relaxed line-clamp-3 mb-2">
-                                {ccData.activities}
-                              </p>
-                            )}
-                            <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
-                              {ccData.geographicSpread && (
-                                <span className="text-xs text-gray-400 flex items-center gap-1">
-                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                                    <circle cx="5" cy="4" r="2" stroke="#9CA3AF" strokeWidth="1.25"/>
-                                    <path d="M5 10s-3-3-3-6a3 3 0 116 0c0 3-3 6-3 6z" stroke="#9CA3AF" strokeWidth="1.25"/>
-                                  </svg>
-                                  {ccData.geographicSpread}
-                                </span>
-                              )}
-                              {ccData.website && (
-                                <span className="text-xs text-[#0F4C35] flex items-center gap-1 truncate max-w-[200px]">
-                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                                    <circle cx="5" cy="5" r="4" stroke="#0F4C35" strokeWidth="1.25"/>
-                                    <path d="M1 5h8M5 1s-2 1.5-2 4 2 4 2 4M5 1s2 1.5 2 4-2 4-2 4" stroke="#0F4C35" strokeWidth="1.25"/>
-                                  </svg>
-                                  {ccData.website.replace(/^https?:\/\//, '')}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex border-t border-gray-100">
-                            <button
-                              type="button"
-                              onClick={confirmCharity}
-                              className="flex-1 py-3 text-sm font-semibold text-[#0F4C35] hover:bg-[#E8F2ED] transition-colors flex items-center justify-center gap-1.5"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                <path d="M2.5 7l3 3 6-6" stroke="#0F4C35" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                              Yes, that&apos;s us
-                            </button>
-                            <div className="w-px bg-gray-100" />
-                            <button
-                              type="button"
-                              onClick={() => { setCcStatus('idle'); setCcData(null); setCcNumber('') }}
-                              className="flex-1 py-3 text-sm text-gray-500 hover:bg-gray-50 transition-colors"
-                            >
-                              Not our charity
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      <p className="text-[10px] text-gray-400 mt-2 text-center">
-                        Optional — you can also fill in the form below manually
+                    {ccStatus === 'notfound' && (
+                      <p className="text-xs text-red-600 mt-2 bg-red-50 rounded-lg px-3 py-2">
+                        Charity not found. Please check your number or fill in your details manually below.
                       </p>
-                    </>
-                  )}
-                </div>
-              )}
+                    )}
+                    {ccStatus === 'invalid' && (
+                      <p className="text-xs text-amber-700 mt-2 bg-amber-50 rounded-lg px-3 py-2">
+                        Please enter a valid charity number (6–8 digits).
+                      </p>
+                    )}
+                    {ccStatus === 'error' && (
+                      <p className="text-xs text-red-600 mt-2 bg-red-50 rounded-lg px-3 py-2">
+                        Couldn&apos;t reach the Charity Commission right now. Please fill in your details manually.
+                      </p>
+                    )}
+
+                    {/* Preview card */}
+                    {ccStatus === 'found' && ccData && (
+                      <div className="mt-3 bg-white rounded-xl border border-[#0F4C35]/25 overflow-hidden">
+                        <div className="px-4 pt-3 pb-1">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Is this your charity?</p>
+                          <div className="flex items-start gap-2 mb-2">
+                            <div className="w-8 h-8 rounded-lg bg-[#E8F2ED] flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <rect x="2" y="3" width="12" height="10" rx="2" stroke="#0F4C35" strokeWidth="1.5"/>
+                                <path d="M5 7h6M5 10h4" stroke="#0F4C35" strokeWidth="1.25" strokeLinecap="round"/>
+                              </svg>
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[#0D1117] text-sm leading-tight">{ccData.name}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                Registered #{ccData.registrationNumber}
+                                {ccData.incomeDisplay && <> · Annual income {ccData.incomeDisplay}</>}
+                              </p>
+                            </div>
+                          </div>
+                          {ccData.activities && (
+                            <p className="text-xs text-gray-600 leading-relaxed line-clamp-3 mb-2">{ccData.activities}</p>
+                          )}
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
+                            {ccData.geographicSpread && (
+                              <span className="text-xs text-gray-400">📍 {ccData.geographicSpread}</span>
+                            )}
+                            {ccData.website && (
+                              <span className="text-xs text-[#0F4C35] truncate max-w-[200px]">
+                                🌐 {ccData.website.replace(/^https?:\/\//, '')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex border-t border-gray-100">
+                          <button
+                            type="button"
+                            onClick={confirmCharity}
+                            className="flex-1 py-3 text-sm font-semibold text-[#0F4C35] hover:bg-[#E8F2ED] transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                              <path d="M2.5 7l3 3 6-6" stroke="#0F4C35" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            Yes, that&apos;s us
+                          </button>
+                          <div className="w-px bg-gray-100" />
+                          <button
+                            type="button"
+                            onClick={() => { setCcStatus('idle'); setCcData(null); setCcNumber('') }}
+                            className="flex-1 py-3 text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+                          >
+                            Not our charity
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-[10px] text-gray-400 mt-2 text-center">Optional — fill in the form below if you prefer</p>
+                  </>
+                )}
+              </div>
 
               {/* Organisation name */}
               <div>
                 <label className="label">
-                  Organisation name
+                  Charity name
                   {autoFilledFields.has('name') && <AutoFilledBadge />}
                 </label>
                 <input
@@ -690,116 +436,73 @@ export default function OnboardingPage() {
                   className="input"
                   placeholder="e.g. Bright Futures Charity"
                   value={form.name}
-                  onChange={(e) => {
-                    update('name', e.target.value)
-                    setAutoFilledFields(s => { const n = new Set(s); n.delete('name'); return n })
-                  }}
+                  onChange={e => { update('name', e.target.value); setAutoFilledFields(s => { const n = new Set(s); n.delete('name'); return n }) }}
                 />
               </div>
 
-              {/* Nonprofit type */}
+              {/* Org type */}
               <div>
                 <label className="label">Organisation type</label>
-                <select
-                  required
-                  className="input"
-                  value={form.nonprofit_type}
-                  onChange={(e) => update('nonprofit_type', e.target.value)}
-                >
+                <select required className="input" value={form.nonprofit_type} onChange={e => update('nonprofit_type', e.target.value)}>
                   <option value="">Select your type...</option>
-                  {NONPROFIT_TYPES.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
+                  {NONPROFIT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
 
-              {/* Registration number — shown for non-UK only (UK uses the CC flow above) */}
-              {!isUK && (
-                <div>
-                  <label className="label">{getRegistrationLabel(form.country)}</label>
-                  <input
-                    className="input"
-                    placeholder="Optional"
-                    value={form.registration_number}
-                    onChange={(e) => update('registration_number', e.target.value)}
-                  />
-                </div>
-              )}
-
-              {/* Primary sector */}
+              {/* Sector */}
               <div>
                 <label className="label">Primary sector</label>
-                <select
-                  required
-                  className="input"
-                  value={form.sector}
-                  onChange={(e) => update('sector', e.target.value)}
-                >
+                <select required className="input" value={form.sector} onChange={e => update('sector', e.target.value)}>
                   <option value="">Select your sector...</option>
-                  {sectors.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                  ))}
+                  {sectors.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </div>
 
               {/* Location */}
               <div>
                 <label className="label">
-                  City / Region
+                  City / Town
                   {autoFilledFields.has('location') && <AutoFilledBadge />}
                 </label>
                 <input
                   required
                   className="input"
-                  placeholder={isUK ? 'e.g. Manchester, Greater Manchester' : 'e.g. Chicago, Illinois'}
+                  placeholder="e.g. Manchester"
                   value={form.location}
-                  onChange={(e) => {
-                    update('location', e.target.value)
-                    setAutoFilledFields(s => { const n = new Set(s); n.delete('location'); return n })
-                  }}
+                  onChange={e => { update('location', e.target.value); setAutoFilledFields(s => { const n = new Set(s); n.delete('location'); return n }) }}
                 />
               </div>
 
               {/* Annual income */}
               <div>
                 <label className="label">
-                  Annual income <span className="text-gray-400 font-normal">({currency.code})</span>
+                  Annual income (£)
                   {autoFilledFields.has('annual_income') && <AutoFilledBadge />}
                 </label>
                 <select
                   required
                   className="input"
                   value={form.annual_income}
-                  onChange={(e) => {
-                    update('annual_income', e.target.value)
-                    setAutoFilledFields(s => { const n = new Set(s); n.delete('annual_income'); return n })
-                  }}
+                  onChange={e => { update('annual_income', e.target.value); setAutoFilledFields(s => { const n = new Set(s); n.delete('annual_income'); return n }) }}
                 >
                   <option value="">Select income range...</option>
-                  {incomeWithCurrency.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
+                  {incomeOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
 
               {/* Beneficiaries */}
               <div>
                 <label className="label">
-                  Who do you help? (beneficiaries)
+                  Who do you help?
                   {autoFilledFields.has('beneficiaries') && <AutoFilledBadge />}
                 </label>
                 <textarea
                   required
                   rows={3}
                   className="input resize-none"
-                  placeholder={isUK
-                    ? 'e.g. Young people aged 11–25 experiencing mental health challenges in underserved communities.'
-                    : 'e.g. Young people aged 11–25 experiencing mental health challenges and social isolation in underserved communities.'}
+                  placeholder="e.g. Young people aged 11–25 experiencing mental health challenges in underserved communities across Greater Manchester."
                   value={form.beneficiaries}
-                  onChange={(e) => {
-                    update('beneficiaries', e.target.value)
-                    setAutoFilledFields(s => { const n = new Set(s); n.delete('beneficiaries'); return n })
-                  }}
+                  onChange={e => { update('beneficiaries', e.target.value); setAutoFilledFields(s => { const n = new Set(s); n.delete('beneficiaries'); return n }) }}
                 />
               </div>
 
@@ -812,15 +515,11 @@ export default function OnboardingPage() {
                   className="input resize-none"
                   placeholder="e.g. Running weekly counselling sessions, a community garden project, and an after-school mentoring programme."
                   value={form.current_projects}
-                  onChange={(e) => update('current_projects', e.target.value)}
+                  onChange={e => update('current_projects', e.target.value)}
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={loading || !form.country}
-                className="btn-primary w-full justify-center py-3.5 disabled:opacity-60"
-              >
+              <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3.5 disabled:opacity-60">
                 Find my grants
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                   <path d="M4 9h10M9 4l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -830,7 +529,7 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 3 — Loading */}
+        {/* ── Step 3: Loading ── */}
         {step === 3 && (
           <div className="card text-center py-12">
             <div className="relative w-20 h-20 mx-auto mb-6">
@@ -845,10 +544,10 @@ export default function OnboardingPage() {
             </div>
             <h2 className="font-display text-2xl font-bold text-[#0D1117] mb-3">Finding your grants...</h2>
             <p className="text-gray-500 text-sm max-w-xs mx-auto">
-              Our AI is scanning 2,400+ grants and scoring your eligibility for each one. This takes about 10–15 seconds.
+              Our AI is scanning 1,000+ UK grants and scoring your eligibility for each one. This takes about 10–15 seconds.
             </p>
             <div className="mt-6 space-y-2 max-w-xs mx-auto">
-              {['Analysing your charity profile...', 'Scanning UK grant databases...', 'Scoring eligibility...'].map((msg, i) => (
+              {['Analysing your charity profile...', 'Scanning UK grant databases...', 'Scoring your eligibility...'].map((msg, i) => (
                 <div key={msg} className="flex items-center gap-2 text-sm text-gray-400">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#00C875] animate-pulse" style={{ animationDelay: `${i * 0.3}s` }} />
                   {msg}
@@ -858,7 +557,7 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 4 — Success */}
+        {/* ── Step 4: Success ── */}
         {step === 4 && (
           <div className="card text-center py-10">
             <div className="w-16 h-16 rounded-full bg-[#E8F2ED] flex items-center justify-center mx-auto mb-6">
@@ -871,12 +570,9 @@ export default function OnboardingPage() {
               We found {matchCount} grant{matchCount !== 1 ? 's' : ''} for you!
             </h2>
             <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              Each one has been scored for eligibility with a specific reason why it matches your charity. Let&apos;s go explore them.
+              Each one is scored for eligibility with a specific reason why it matches your charity. Let&apos;s go explore them.
             </p>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="btn-primary px-8 py-3.5 justify-center"
-            >
+            <button onClick={() => router.push('/dashboard')} className="btn-primary px-8 py-3.5 justify-center">
               View my grants
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                 <path d="M4 9h10M9 4l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -884,6 +580,7 @@ export default function OnboardingPage() {
             </button>
           </div>
         )}
+
       </div>
     </div>
   )
