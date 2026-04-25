@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/import-grants",
+      "schedule": "0 3 * * *"
+    },
+    {
       "path": "/api/admin/sync-grants",
       "schedule": "0 2 * * *"
     },

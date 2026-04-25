@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "import:360giving": "npx tsx --tsconfig tsconfig.scripts.json scripts/import-360giving.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
