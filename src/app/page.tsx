@@ -16,7 +16,7 @@ const benefits = [
       </svg>
     ),
     title: 'Instant Grant Discovery',
-    desc: 'Our AI scans thousands of grant databases worldwide and matches them to your nonprofit profile in seconds — not hours.',
+    desc: 'Our AI scans thousands of UK grant databases and matches them to your charity profile in seconds — not hours.',
   },
   {
     icon: (
@@ -56,13 +56,13 @@ const benefits = [
 const steps = [
   {
     step: '01',
-    title: 'Tell us about your nonprofit',
-    desc: 'Share your sector, size, country, and what you do. Takes about 3 minutes.',
+    title: 'Tell us about your charity',
+    desc: 'Share your sector, size, and what you do. Takes about 3 minutes.',
   },
   {
     step: '02',
     title: 'We find your matches',
-    desc: 'Our AI analyses thousands of active grants worldwide and scores your eligibility for each one in real time.',
+    desc: 'Our AI analyses thousands of active UK grants and scores your eligibility for each one in real time.',
   },
   {
     step: '03',
@@ -103,9 +103,9 @@ const testimonials = [
 ]
 
 const stats = [
-  { value: '$8.5M+', label: 'Funding found for our users' },
-  { value: '2,400+', label: 'Active grants tracked worldwide' },
-  { value: '50+', label: 'Countries supported' },
+  { value: '£1M+', label: 'Funding matched for UK charities' },
+  { value: '1,000+', label: 'Active UK grants tracked' },
+  { value: '170,000+', label: 'UK charities we can help' },
   { value: '94%', label: 'Match accuracy rate' },
 ]
 
@@ -121,15 +121,15 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16 text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 text-sm mb-6">
             <span className="w-2 h-2 rounded-full bg-[#00C875]" />
-            AI-powered grant discovery for nonprofits worldwide
+            AI-powered grant discovery for UK charities
           </div>
           <h1 className="font-display text-4xl md:text-6xl font-bold text-white leading-tight mb-6 max-w-3xl mx-auto">
-            Find funding your nonprofit is missing.
+            Find funding your charity is missing.
             <br />
             <span className="text-white">Stop searching. Start winning.</span>
           </h1>
           <p className="text-white/80 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            FundsRadar matches your nonprofit or charity to hundreds of grants in your country using AI, explains your eligibility in plain English, and helps you draft applications — saving your team 8–10 hours every week.
+            FundsRadar matches your charity to hundreds of UK grants using AI, explains your eligibility in plain English, and helps you draft applications — saving your team 8–10 hours every week.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup" className="bg-white text-[#0F4C35] px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-colors duration-200 inline-flex items-center justify-center gap-2 w-full sm:w-auto">
@@ -172,13 +172,13 @@ export default function LandingPage() {
           <div className="text-center mb-14">
             <div className="inline-flex items-center gap-2 bg-white/80 border border-gray-200 rounded-full px-4 py-1.5 text-sm mb-5 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-[#00C875]" />
-              BUILT FOR NONPROFITS WORLDWIDE
+              BUILT FOR UK CHARITIES
             </div>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-[#0D1117] mb-4">
               Everything your fundraising team needs
             </h2>
             <p className="text-gray-500 text-lg max-w-xl mx-auto">
-              Built for nonprofits and charities worldwide whose fundraising teams are stretched thin and can&apos;t afford to miss funding opportunities.
+              Built for UK charities whose fundraising teams are stretched thin and can&apos;t afford to miss funding opportunities.
             </p>
           </div>
         </ScrollReveal>
@@ -209,7 +209,7 @@ export default function LandingPage() {
                 Set up in 3 minutes. Find grants in seconds.
               </h2>
               <p className="text-white/70 text-lg max-w-xl mx-auto">
-                No spreadsheets, no endless browsing. Just targeted, AI-matched funding opportunities for your nonprofit.
+                No spreadsheets, no endless browsing. Just targeted, AI-matched funding opportunities for your charity.
               </p>
             </div>
           </ScrollReveal>
@@ -249,9 +249,9 @@ export default function LandingPage() {
         <ScrollReveal>
           <div className="text-center mb-14">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-[#0D1117] mb-4">
-              Trusted by nonprofits worldwide
+              Trusted by UK charities
             </h2>
-            <p className="text-gray-500 text-lg">Real results from real nonprofit and charity teams.</p>
+            <p className="text-gray-500 text-lg">Real results from real charity fundraising teams.</p>
           </div>
         </ScrollReveal>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -329,7 +329,7 @@ export default function LandingPage() {
               Your next grant is out there right now.
             </h2>
             <p className="text-white/70 text-lg mb-8">
-              Join nonprofits worldwide already finding funding they were missing.
+              Join UK charities already finding funding they were missing.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-8 text-white text-sm">
               <span>🔒 No credit card required</span>
@@ -354,7 +354,7 @@ export default function LandingPage() {
             <div className="md:col-span-2">
               <div className="font-display font-bold text-white text-lg mb-1">FundsRadar</div>
               <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem' }}>
-                AI-powered grant discovery for nonprofits worldwide
+                AI-powered grant discovery for UK charities
               </p>
             </div>
             {/* Product links */}

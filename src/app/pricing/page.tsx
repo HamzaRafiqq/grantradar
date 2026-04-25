@@ -48,6 +48,7 @@ function detectCurrency(): Currency {
 
 const freeFeatures = [
   '3 matched grants',
+  'UK grant database included',
   'Eligibility scoring (1–10)',
   'Match reason from AI',
   'Basic deadline view',
@@ -66,7 +67,7 @@ const proFeatures = [
 
 const agencyFeatures = [
   'Everything in Pro',
-  'Up to 10 nonprofit profiles',
+  'Up to 10 charity profiles',
   '3 team member seats',
   'Bulk grant matching',
   'White-label PDF reports',
@@ -308,9 +309,9 @@ export default function PricingPage() {
           <div className="grid md:grid-cols-2 gap-6">
             {[
               { q: 'Can I cancel any time?', a: "Yes. Cancel from your Settings page and you'll keep access until the end of your billing period." },
-              { q: 'Which countries are supported?', a: 'FundsRadar works for nonprofits in 50+ countries. We match grants from your country plus global funders like Gates Foundation, UNDP, and Comic Relief.' },
+              { q: 'Which grants are included?', a: 'FundsRadar is built primarily for UK charities and includes a comprehensive UK grant database covering National Lottery, Esmée Fairbairn, Comic Relief, Lloyds Bank Foundation, and hundreds more.' },
               { q: 'Can I switch currencies?', a: 'Yes — use the currency switcher above. You\'ll be charged in your chosen currency via Stripe. Prices shown are approximate equivalents.' },
-              { q: 'What is the Agency plan for?', a: 'Grant consultants or umbrella organisations managing multiple nonprofits. One login, up to 10 profiles, and bulk matching across all of them.' },
+              { q: 'What is the Agency plan for?', a: 'Grant consultants or umbrella organisations managing multiple charities. One login, up to 10 profiles, and bulk matching across all of them.' },
             ].map(item => (
               <div key={item.q} className="card">
                 <h3 className="font-semibold text-[#0D1117] mb-2">{item.q}</h3>
