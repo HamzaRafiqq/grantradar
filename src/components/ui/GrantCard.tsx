@@ -129,10 +129,10 @@ export default function GrantCard({ match, isLocked = false, plan = 'free', orgC
               <path d="M7 9V7a3 3 0 116 0v2" stroke="white" strokeWidth="1.75" strokeLinecap="round"/>
             </svg>
           </div>
-          <p className="font-semibold text-sm text-[#0D1117] mb-1">Upgrade to Pro</p>
-          <p className="text-gray-400 text-xs text-center px-4">Unlock all matched grants</p>
+          <p className="font-semibold text-sm text-[#0D1117] mb-1">Unlock this grant</p>
+          <p className="text-gray-400 text-xs text-center px-4">Upgrade to see all matched grants</p>
           <Link href="/pricing" className="mt-3 bg-[#0F4C35] text-white text-xs font-medium px-4 py-2 rounded-lg hover:bg-[#0c3d2a] transition-colors">
-            Upgrade — £49/mo
+            Upgrade — from £9/mo
           </Link>
         </div>
       )}
