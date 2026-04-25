@@ -13,6 +13,10 @@
       "schedule": "0 8 * * 1"
     },
     {
+      "path": "/api/cron/trust-score",
+      "schedule": "0 10 * * 1"
+    },
+    {
       "path": "/api/email/deadline-alert",
       "schedule": "0 9 * * *"
     },

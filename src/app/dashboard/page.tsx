@@ -3,9 +3,11 @@ import { createClient } from '@/lib/supabase/server'
 import AppShell from '@/components/ui/AppShell'
 import DashboardClient from './DashboardClient'
 import DashboardGrants from './DashboardGrants'
+import TrustScoreWidget from './TrustScoreWidget'
 import type { GrantMatchWithGrant } from '@/types'
 import { daysUntil } from '@/lib/utils'
 import { getLocale, getGreeting, formatLocalAmount } from '@/lib/locale'
+import { calculateTrustScore } from '@/lib/trust-score'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -55,6 +57,43 @@ export default async function DashboardPage() {
   const displayValue = wonValue > 0 ? wonValue : totalPotential
   const displayAmount = formatLocalAmount(displayValue, 'GBP', locale.currency, locale.currencySymbol)
 
+  // ── Trust Score ────────────────────────────────────────────────────────────
+  // Fetch latest history entry; if none exists, calculate now
+  const { data: latestHistory } = await supabase
+    .from('trust_score_history')
+    .select('*')
+    .eq('org_id', org.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  let trustData = latestHistory
+    ? {
+        total:        latestHistory.total_score,
+        scores: {
+          governance:         latestHistory.governance_score,
+          financial:          latestHistory.financial_score,
+          documents:          latestHistory.document_score,
+          trackRecord:        latestHistory.track_record_score,
+          applicationQuality: latestHistory.application_score,
+        },
+        improvements: (latestHistory.improvements as string[]) ?? [],
+      }
+    : null
+
+  if (!trustData) {
+    try {
+      const result = await calculateTrustScore(org.id, supabase)
+      trustData = { total: result.total, scores: result.scores, improvements: result.improvements }
+    } catch {
+      trustData = {
+        total: 0,
+        scores: { governance: 0, financial: 0, documents: 0, trackRecord: 0, applicationQuality: 0 },
+        improvements: ['Complete your charity profile to get your Trust Score'],
+      }
+    }
+  }
+
   const stats = [
     { label: 'Matched Grants', value: typedMatches.length.toString(), icon: '🎯' },
     { label: 'Strong Matches', value: highScore.length.toString(), icon: '⭐', highlight: highScore.length > 0 },
@@ -94,7 +133,15 @@ export default async function DashboardPage() {
           ))}
         </div>
 
-        {/* Grant cards */}
+        {/* Trust Score + Grant cards row */}
+        <div className="flex flex-col xl:flex-row gap-6">
+          {/* Trust Score widget */}
+          <div className="xl:w-72 flex-shrink-0">
+            <TrustScoreWidget initial={trustData} />
+          </div>
+
+          {/* Grant cards */}
+          <div className="flex-1 min-w-0">
         {typedMatches.length === 0 ? (
           <div className="card text-center py-16 max-w-xl mx-auto">
             <div className="text-5xl mb-5">🚀</div>
@@ -119,6 +166,8 @@ export default async function DashboardPage() {
         ) : (
           <DashboardGrants matches={typedMatches} plan={plan} orgCountry={org.country} />
         )}
+          </div>
+        </div>
       </div>
     </AppShell>
   )
