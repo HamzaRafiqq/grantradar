@@ -5,9 +5,13 @@ type Currency = 'GBP' | 'USD' | 'EUR' | 'AUD' | 'CAD'
 
 // Amounts in smallest currency unit (pence/cents)
 const PRICES = {
+  starter: {
+    monthly: { GBP: 900,   USD: 1100,  EUR: 1000,  AUD: 1500,  CAD: 1300 },
+    annual:  { GBP: 9000,  USD: 10800, EUR: 9900,  AUD: 14400, CAD: 12600 },
+  },
   pro: {
     monthly: { GBP: 4900, USD: 5900, EUR: 5500, AUD: 8900, CAD: 7900 },
-    annual:  { GBP: 46800, USD: 56400, EUR: 52800, AUD: 85200, CAD: 75600 },
+    annual:  { GBP: 47000, USD: 56400, EUR: 52800, AUD: 85200, CAD: 75600 },
   },
   agency: {
     monthly: { GBP: 9900, USD: 11900, EUR: 10900, AUD: 17900, CAD: 15900 },
@@ -16,6 +20,7 @@ const PRICES = {
 }
 
 const PLAN_NAMES = {
+  starter: { monthly: 'FundsRadar Starter (Monthly)', annual: 'FundsRadar Starter (Annual)' },
   pro: { monthly: 'FundsRadar Pro (Monthly)', annual: 'FundsRadar Pro (Annual)' },
   agency: { monthly: 'FundsRadar Agency (Monthly)', annual: 'FundsRadar Agency (Annual)' },
 }
@@ -23,7 +28,7 @@ const PLAN_NAMES = {
 export async function POST(req: NextRequest) {
   try {
     const { plan, annual, currency = 'GBP' } = await req.json() as {
-      plan: 'pro' | 'agency'
+      plan: 'starter' | 'pro' | 'agency'
       annual: boolean
       currency: Currency
     }
@@ -64,7 +69,9 @@ export async function POST(req: NextRequest) {
             currency: currency.toLowerCase(),
             product_data: {
               name: productName,
-              description: plan === 'pro'
+              description: plan === 'starter'
+                ? 'All matched grants, full funder details, deadline reminders & basic tracker'
+                : plan === 'pro'
                 ? 'Unlimited grant matches, AI drafts, deadline alerts & pipeline board'
                 : 'Everything in Pro + up to 10 profiles, team seats & bulk matching',
             },

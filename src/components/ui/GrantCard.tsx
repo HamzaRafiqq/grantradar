@@ -59,10 +59,11 @@ function DeadlineBadge({ days }: { days: number }) {
 interface Props {
   match: GrantMatchWithGrant
   isLocked?: boolean
+  plan?: string
   orgCountry?: string
 }
 
-export default function GrantCard({ match, isLocked = false, orgCountry }: Props) {
+export default function GrantCard({ match, isLocked = false, plan = 'free', orgCountry }: Props) {
   const [status, setStatus] = useState<MatchStatus>(match.status as MatchStatus)
   const [expanded, setExpanded] = useState(false)
   const [drafting, setDrafting] = useState(false)
@@ -275,13 +276,22 @@ export default function GrantCard({ match, isLocked = false, orgCountry }: Props
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-            <button
-              onClick={generateDraft}
-              disabled={drafting}
-              className="flex-1 border border-[#0F4C35] text-[#0F4C35] text-xs font-medium py-1.5 px-3 rounded-lg hover:bg-[#0F4C35] hover:text-white transition-colors disabled:opacity-50 text-center"
-            >
-              {drafting ? 'Writing...' : '✍️ AI Draft'}
-            </button>
+            {plan !== 'starter' && plan !== 'free' ? (
+              <button
+                onClick={generateDraft}
+                disabled={drafting}
+                className="flex-1 border border-[#0F4C35] text-[#0F4C35] text-xs font-medium py-1.5 px-3 rounded-lg hover:bg-[#0F4C35] hover:text-white transition-colors disabled:opacity-50 text-center"
+              >
+                {drafting ? 'Writing...' : '✍️ AI Draft'}
+              </button>
+            ) : (
+              <Link
+                href="/pricing"
+                className="flex-1 border border-gray-200 text-gray-400 text-xs font-medium py-1.5 px-3 rounded-lg hover:border-[#0F4C35] hover:text-[#0F4C35] transition-colors text-center"
+              >
+                ✍️ AI Draft (Pro)
+              </Link>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Link

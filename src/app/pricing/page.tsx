@@ -17,11 +17,17 @@ const CURRENCIES: { code: Currency; symbol: string; label: string }[] = [
 ]
 
 const PRICES = {
+  starter: {
+    monthly: { GBP: 9,  USD: 11, EUR: 10, AUD: 15, CAD: 13 },
+    annual:  { GBP: 7,  USD: 9,  EUR: 8,  AUD: 12, CAD: 11 },
+    annualTotal: { GBP: 90,  USD: 108, EUR: 99,  AUD: 144, CAD: 126 },
+    annualSave:  { GBP: 18,  USD: 24,  EUR: 21,  AUD: 36,  CAD: 30 },
+  },
   pro: {
     monthly: { GBP: 49, USD: 59, EUR: 55, AUD: 89, CAD: 79 },
     annual:  { GBP: 39, USD: 47, EUR: 44, AUD: 71, CAD: 63 },
-    annualTotal: { GBP: 468, USD: 564, EUR: 528, AUD: 852, CAD: 756 },
-    annualSave:  { GBP: 120, USD: 144, EUR: 132, AUD: 216, CAD: 192 },
+    annualTotal: { GBP: 470, USD: 564, EUR: 528, AUD: 852, CAD: 756 },
+    annualSave:  { GBP: 118, USD: 144, EUR: 132, AUD: 216, CAD: 192 },
   },
   agency: {
     monthly: { GBP: 99, USD: 119, EUR: 109, AUD: 179, CAD: 159 },
@@ -53,6 +59,15 @@ const freeFeatures = [
   'Match reason from AI',
   'Basic deadline view',
   'Grant status tracking',
+]
+
+const starterFeatures = [
+  'Unlimited grant views',
+  'Full funder names & details',
+  'Deadlines & apply links',
+  'Deadline reminder emails',
+  'Basic tracker (save 25 grants)',
+  'Email support',
 ]
 
 const proFeatures = [
@@ -102,13 +117,18 @@ function CrossIcon() {
 export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false)
   const [currency, setCurrency] = useState<Currency>('GBP')
-  const [loading, setLoading] = useState<'pro' | 'agency' | null>(null)
+  const [loading, setLoading] = useState<'starter' | 'pro' | 'agency' | null>(null)
 
   useEffect(() => {
     setCurrency(detectCurrency())
   }, [])
 
   const sym = CURRENCIES.find(c => c.code === currency)?.symbol ?? '£'
+
+  const starterMonthly = PRICES.starter.monthly[currency]
+  const starterAnnual  = PRICES.starter.annual[currency]
+  const starterTotal   = PRICES.starter.annualTotal[currency]
+  const starterSave    = PRICES.starter.annualSave[currency]
 
   const proMonthly = PRICES.pro.monthly[currency]
   const proAnnual  = PRICES.pro.annual[currency]
@@ -120,10 +140,11 @@ export default function PricingPage() {
   const agencyTotal   = PRICES.agency.annualTotal[currency]
   const agencySave    = PRICES.agency.annualSave[currency]
 
+  const starterPrice = isAnnual ? starterAnnual : starterMonthly
   const proPrice    = isAnnual ? proAnnual    : proMonthly
   const agencyPrice = isAnnual ? agencyAnnual : agencyMonthly
 
-  async function handleCheckout(plan: 'pro' | 'agency') {
+  async function handleCheckout(plan: 'starter' | 'pro' | 'agency') {
     setLoading(plan)
     const res = await fetch('/api/stripe/checkout', {
       method: 'POST',
@@ -194,7 +215,7 @@ export default function PricingPage() {
         </div>
 
         {/* Pricing cards */}
-        <div className="grid md:grid-cols-3 gap-8 items-start">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
 
           {/* Free */}
           <div className="card flex flex-col">
@@ -221,6 +242,48 @@ export default function PricingPage() {
             <Link href="/signup" className="btn-secondary w-full justify-center py-3.5 text-sm">
               Get started free
             </Link>
+          </div>
+
+          {/* Starter */}
+          <div className="card flex flex-col">
+            <div className="mb-6">
+              <h2 className="font-display text-2xl font-bold text-[#0D1117]">Starter</h2>
+              <p className="text-gray-400 text-sm mt-1">For charities just getting going</p>
+            </div>
+            <div className="mb-1 flex items-end gap-2">
+              <span className="text-5xl font-bold text-[#0D1117]">{sym}{starterPrice}</span>
+              <span className="text-gray-400 text-sm mb-2">/mo</span>
+            </div>
+            {isAnnual ? (
+              <>
+                <p className="text-green-600 text-xs font-semibold mb-1">Save {sym}{starterSave}/year</p>
+                <p className="text-gray-400 text-sm mb-8">Billed {sym}{starterTotal}/year</p>
+              </>
+            ) : (
+              <p className="text-gray-400 text-sm mb-8">Cancel any time</p>
+            )}
+            <ul className="space-y-3 mb-8 flex-1">
+              {starterFeatures.map(f => (
+                <li key={f} className="flex items-center gap-3 text-sm text-gray-600">
+                  <CheckIcon /> {f}
+                </li>
+              ))}
+              {['AI application drafts', 'Pipeline kanban board', 'Multi-user seats'].map(f => (
+                <li key={f} className="flex items-center gap-3 text-sm text-gray-300">
+                  <CrossIcon /> {f}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => handleCheckout('starter')}
+              disabled={loading !== null}
+              className="btn-secondary w-full justify-center py-3.5 text-sm disabled:opacity-60"
+            >
+              {loading === 'starter' ? (
+                <><svg className="animate-spin" width="16" height="16" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="2" strokeDasharray="22" strokeDashoffset="8"/></svg> Redirecting...</>
+              ) : `Get Starter — ${sym}${starterPrice}/mo`}
+            </button>
+            <p className="text-center text-xs text-gray-400 mt-3">Secure payment via Stripe</p>
           </div>
 
           {/* Pro */}

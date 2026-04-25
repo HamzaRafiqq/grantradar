@@ -61,11 +61,11 @@ function inDeadlineRange(deadline: string, range: DeadlineRange): boolean {
 
 interface Props {
   matches: GrantMatchWithGrant[]
-  isFree: boolean
+  plan: string
   orgCountry?: string
 }
 
-export default function DashboardGrants({ matches, isFree, orgCountry }: Props) {
+export default function DashboardGrants({ matches, plan, orgCountry }: Props) {
   const [filters, setFilters] = useState<Filters>(defaultFilters)
   const [showClosed, setShowClosed] = useState(false)
   const [filtersLoaded, setFiltersLoaded] = useState(false)
@@ -295,7 +295,7 @@ export default function DashboardGrants({ matches, isFree, orgCountry }: Props) 
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filtered.map((match, i) => (
-            <GrantCard key={match.id} match={match} isLocked={isFree && i >= 3} orgCountry={orgCountry} />
+            <GrantCard key={match.id} match={match} isLocked={plan === 'free' && i >= 3} plan={plan} orgCountry={orgCountry} />
           ))}
         </div>
       )}

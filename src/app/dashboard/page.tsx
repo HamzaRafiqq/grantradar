@@ -40,7 +40,7 @@ export default async function DashboardPage() {
 
   const typedMatches = (matches ?? []) as unknown as GrantMatchWithGrant[]
 
-  const isFree = profile?.plan === 'free'
+  const plan = profile?.plan ?? 'free'
   const locale = getLocale(org.country)
   const greeting = getGreeting()
 
@@ -117,7 +117,7 @@ export default async function DashboardPage() {
             <DashboardClient organisationId={org.id} showButton />
           </div>
         ) : (
-          <DashboardGrants matches={typedMatches} isFree={isFree} orgCountry={org.country} />
+          <DashboardGrants matches={typedMatches} plan={plan} orgCountry={org.country} />
         )}
       </div>
     </AppShell>

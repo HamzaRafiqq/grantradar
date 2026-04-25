@@ -1,4 +1,4 @@
-export type Plan = 'free' | 'pro'
+export type Plan = 'free' | 'starter' | 'pro' | 'agency'
 
 export type Sector =
   | 'animals'

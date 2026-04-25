@@ -81,10 +81,9 @@ function getCurrency(country: string) {
 
 function getRegistrationLabel(country: string) {
   const labels: Record<string, string> = {
-    'United Kingdom': 'Charity Commission Number',
-    'United States': 'EIN Number',
-    'Canada': 'CRA Registration Number',
-    'Australia': 'ABN Number',
+    'United States': 'EIN Number (optional)',
+    'Canada': 'CRA Registration Number (optional)',
+    'Australia': 'ABN Number (optional)',
   }
   return labels[country] ?? 'Registration Number (optional)'
 }
@@ -139,6 +138,35 @@ const incomeOptions: { value: AnnualIncome; label: string }[] = [
   { value: 'over_500k', label: 'Over 500,000 (large)' },
 ]
 
+// ── CC lookup types ───────────────────────────────────────────────────────────
+
+interface CCData {
+  name: string
+  registrationNumber: string
+  activities: string
+  annualIncome: string
+  incomeDisplay: string
+  location: string
+  geographicSpread: string
+  website: string
+  email: string
+}
+
+type CCStatus = 'idle' | 'loading' | 'found' | 'notfound' | 'invalid' | 'error'
+
+// ── AutoFilled badge ──────────────────────────────────────────────────────────
+
+function AutoFilledBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#0F4C35] bg-[#E8F2ED] px-2 py-0.5 rounded-full ml-2">
+      <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+        <path d="M1.5 4l1.5 1.5 3-3" stroke="#0F4C35" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      Auto-filled
+    </span>
+  )
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function OnboardingPage() {
@@ -149,6 +177,15 @@ export default function OnboardingPage() {
   const [error, setError] = useState('')
   const [countrySearch, setCountrySearch] = useState('')
   const [countryOpen, setCountryOpen] = useState(false)
+
+  // Charity Commission lookup state
+  const [ccNumber, setCcNumber] = useState('')
+  const [ccStatus, setCcStatus] = useState<CCStatus>('idle')
+  const [ccData, setCcData] = useState<CCData | null>(null)
+  const [ccConfirmed, setCcConfirmed] = useState(false)
+
+  // Track which fields were auto-filled for badge display
+  const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set())
 
   const [form, setForm] = useState({
     name: '',
@@ -170,6 +207,17 @@ export default function OnboardingPage() {
     setForm(f => ({ ...f, country: detected, currency: currency.code }))
     setCountrySearch(detected)
   }, [])
+
+  // Reset CC state if country changes away from UK
+  useEffect(() => {
+    if (form.country !== 'United Kingdom' && ccConfirmed) {
+      setCcConfirmed(false)
+      setCcStatus('idle')
+      setCcData(null)
+      setCcNumber('')
+      setAutoFilledFields(new Set())
+    }
+  }, [form.country, ccConfirmed])
 
   function update(field: string, value: string | boolean) {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -193,6 +241,95 @@ export default function OnboardingPage() {
     ...o,
     label: o.label.replace(/(\d[\d,]+)/g, `${currency.symbol}$1`),
   }))
+
+  // ── Charity Commission lookup ─────────────────────────────────────────────
+
+  async function verifyCharity() {
+    if (!ccNumber.trim()) return
+    setCcStatus('loading')
+    setCcData(null)
+
+    try {
+      const res = await fetch('/api/charity-commission/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ registrationNumber: ccNumber.trim() }),
+      })
+
+      if (res.status === 400) {
+        setCcStatus('invalid')
+        return
+      }
+      if (res.status === 404) {
+        setCcStatus('notfound')
+        return
+      }
+      if (!res.ok) {
+        setCcStatus('error')
+        return
+      }
+
+      const data: CCData = await res.json()
+      setCcData(data)
+      setCcStatus('found')
+    } catch {
+      setCcStatus('error')
+    }
+  }
+
+  function confirmCharity() {
+    if (!ccData) return
+
+    const filled = new Set<string>()
+    const updates: Partial<typeof form> = {}
+
+    if (ccData.name) {
+      updates.name = ccData.name
+      filled.add('name')
+    }
+    if (ccData.registrationNumber) {
+      updates.registration_number = ccData.registrationNumber
+    }
+    if (ccData.annualIncome) {
+      updates.annual_income = ccData.annualIncome as AnnualIncome
+      filled.add('annual_income')
+    }
+    if (ccData.location) {
+      updates.location = ccData.location
+      filled.add('location')
+    }
+    if (ccData.activities) {
+      updates.beneficiaries = ccData.activities
+      filled.add('beneficiaries')
+    }
+    // Auto-set UK charity type
+    updates.nonprofit_type = 'Registered Charity (UK)'
+
+    setForm(f => ({ ...f, ...updates }))
+    setAutoFilledFields(filled)
+    setCcConfirmed(true)
+    setCcStatus('idle')
+  }
+
+  function resetCcLookup() {
+    setCcConfirmed(false)
+    setCcStatus('idle')
+    setCcData(null)
+    setCcNumber('')
+    setAutoFilledFields(new Set())
+    // Clear auto-filled form values
+    setForm(f => ({
+      ...f,
+      name: '',
+      registration_number: '',
+      annual_income: '' as AnnualIncome,
+      location: '',
+      beneficiaries: '',
+      nonprofit_type: '',
+    }))
+  }
+
+  // ── Form submit ───────────────────────────────────────────────────────────
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -243,6 +380,8 @@ export default function OnboardingPage() {
     setStep(4)
   }
 
+  const isUK = form.country === 'United Kingdom'
+
   return (
     <div className="min-h-screen bg-[#F4F6F5] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-xl">
@@ -283,7 +422,7 @@ export default function OnboardingPage() {
             </div>
             <h1 className="font-display text-2xl font-bold text-[#0D1117] mb-3">Welcome to FundsRadar</h1>
             <p className="text-gray-500 text-sm leading-relaxed mb-6 max-w-sm mx-auto">
-              Tell us about your nonprofit or charity so our AI can find the grants you&apos;re genuinely eligible for — in your country, in your currency.
+              Tell us about your charity so our AI can find the grants you&apos;re genuinely eligible for — matched to your sector, size, and location.
             </p>
             <div className="grid grid-cols-3 gap-4 mb-8 text-center">
               {[
@@ -309,7 +448,7 @@ export default function OnboardingPage() {
         {/* Step 2 — Form */}
         {step === 2 && (
           <div className="card">
-            <h2 className="font-display text-2xl font-bold text-[#0D1117] mb-1">Tell us about your nonprofit</h2>
+            <h2 className="font-display text-2xl font-bold text-[#0D1117] mb-1">Tell us about your charity</h2>
             <p className="text-gray-500 text-sm mb-6">This helps us find grants you&apos;re actually eligible for.</p>
 
             {error && (
@@ -317,19 +456,8 @@ export default function OnboardingPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Organisation name */}
-              <div>
-                <label className="label">Organisation name</label>
-                <input
-                  required
-                  className="input"
-                  placeholder="Chicago Education Alliance"
-                  value={form.name}
-                  onChange={(e) => update('name', e.target.value)}
-                />
-              </div>
 
-              {/* Country — searchable combobox */}
+              {/* Country — searchable combobox (first so CC lookup can appear immediately) */}
               <div className="relative">
                 <label className="label">Country <span className="text-[#0F4C35] text-xs">(auto-detected)</span></label>
                 <input
@@ -358,7 +486,6 @@ export default function OnboardingPage() {
                     ))}
                   </div>
                 )}
-                {/* Currency badge */}
                 {form.country && (
                   <div className="mt-1.5 flex items-center gap-1.5">
                     <span className="text-xs text-gray-400">Currency auto-set to</span>
@@ -367,6 +494,207 @@ export default function OnboardingPage() {
                     </span>
                   </div>
                 )}
+              </div>
+
+              {/* ── UK Charity Commission auto-fill ── */}
+              {isUK && (
+                <div className="rounded-xl border border-[#0F4C35]/25 bg-[#E8F2ED]/60 p-4">
+                  {/* Header */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-5 h-5 rounded-full bg-[#0F4C35] flex items-center justify-center flex-shrink-0">
+                      <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                        <path d="M1.5 4.5l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <p className="text-sm font-semibold text-[#0F4C35]">Auto-fill from Charity Commission 🇬🇧</p>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-3 ml-7">
+                    Enter your charity number to instantly fill your profile from official records.
+                  </p>
+
+                  {ccConfirmed && ccData ? (
+                    /* ── Confirmed state ── */
+                    <div className="flex items-start gap-3 bg-white rounded-xl px-4 py-3 border border-[#0F4C35]/20">
+                      <div className="w-6 h-6 rounded-full bg-[#0F4C35] flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                          <path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#0D1117] truncate">{ccData.name}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Charity #{ccData.registrationNumber}
+                          {ccData.incomeDisplay && <> · Income {ccData.incomeDisplay}</>}
+                        </p>
+                        {ccData.geographicSpread && (
+                          <p className="text-xs text-gray-400 mt-0.5">{ccData.geographicSpread}</p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={resetCcLookup}
+                        className="text-xs text-gray-400 hover:text-gray-600 underline whitespace-nowrap flex-shrink-0"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  ) : (
+                    /* ── Lookup UI ── */
+                    <>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          className="input flex-1"
+                          placeholder="e.g. 1156234"
+                          value={ccNumber}
+                          onChange={e => {
+                            setCcNumber(e.target.value)
+                            if (ccStatus !== 'idle') setCcStatus('idle')
+                          }}
+                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); verifyCharity() } }}
+                        />
+                        <button
+                          type="button"
+                          onClick={verifyCharity}
+                          disabled={!ccNumber.trim() || ccStatus === 'loading'}
+                          className="btn-primary px-4 py-2 text-sm disabled:opacity-60 whitespace-nowrap flex items-center gap-1.5"
+                        >
+                          {ccStatus === 'loading' ? (
+                            <>
+                              <svg className="animate-spin flex-shrink-0" width="14" height="14" viewBox="0 0 18 18" fill="none">
+                                <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="2" strokeDasharray="22" strokeDashoffset="8"/>
+                              </svg>
+                              Checking...
+                            </>
+                          ) : (
+                            'Verify Charity'
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Status messages */}
+                      {ccStatus === 'notfound' && (
+                        <div className="mt-2 flex items-start gap-2 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0 mt-0.5">
+                            <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5"/>
+                            <path d="M7 4v3M7 9.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                          </svg>
+                          Charity not found. Please check your number or fill in your details manually below.
+                        </div>
+                      )}
+                      {ccStatus === 'invalid' && (
+                        <div className="mt-2 flex items-start gap-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0 mt-0.5">
+                            <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5"/>
+                            <path d="M7 4v3M7 9.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                          </svg>
+                          Please enter a valid charity number (6–8 digits).
+                        </div>
+                      )}
+                      {ccStatus === 'error' && (
+                        <div className="mt-2 flex items-start gap-2 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0 mt-0.5">
+                            <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5"/>
+                            <path d="M7 4v3M7 9.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                          </svg>
+                          Couldn&apos;t reach the Charity Commission. Please fill in your details manually.
+                        </div>
+                      )}
+
+                      {/* Preview card */}
+                      {ccStatus === 'found' && ccData && (
+                        <div className="mt-3 bg-white rounded-xl border border-[#0F4C35]/25 overflow-hidden">
+                          <div className="px-4 pt-3 pb-1">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Is this your charity?</p>
+                            <div className="flex items-start gap-2 mb-2">
+                              <div className="w-8 h-8 rounded-lg bg-[#E8F2ED] flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                  <rect x="2" y="3" width="12" height="10" rx="2" stroke="#0F4C35" strokeWidth="1.5"/>
+                                  <path d="M5 7h6M5 10h4" stroke="#0F4C35" strokeWidth="1.25" strokeLinecap="round"/>
+                                </svg>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-semibold text-[#0D1117] text-sm leading-tight">{ccData.name}</p>
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                  Registered #{ccData.registrationNumber}
+                                  {ccData.incomeDisplay && <> · Annual income {ccData.incomeDisplay}</>}
+                                </p>
+                              </div>
+                            </div>
+                            {ccData.activities && (
+                              <p className="text-xs text-gray-600 leading-relaxed line-clamp-3 mb-2">
+                                {ccData.activities}
+                              </p>
+                            )}
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
+                              {ccData.geographicSpread && (
+                                <span className="text-xs text-gray-400 flex items-center gap-1">
+                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                    <circle cx="5" cy="4" r="2" stroke="#9CA3AF" strokeWidth="1.25"/>
+                                    <path d="M5 10s-3-3-3-6a3 3 0 116 0c0 3-3 6-3 6z" stroke="#9CA3AF" strokeWidth="1.25"/>
+                                  </svg>
+                                  {ccData.geographicSpread}
+                                </span>
+                              )}
+                              {ccData.website && (
+                                <span className="text-xs text-[#0F4C35] flex items-center gap-1 truncate max-w-[200px]">
+                                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                    <circle cx="5" cy="5" r="4" stroke="#0F4C35" strokeWidth="1.25"/>
+                                    <path d="M1 5h8M5 1s-2 1.5-2 4 2 4 2 4M5 1s2 1.5 2 4-2 4-2 4" stroke="#0F4C35" strokeWidth="1.25"/>
+                                  </svg>
+                                  {ccData.website.replace(/^https?:\/\//, '')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex border-t border-gray-100">
+                            <button
+                              type="button"
+                              onClick={confirmCharity}
+                              className="flex-1 py-3 text-sm font-semibold text-[#0F4C35] hover:bg-[#E8F2ED] transition-colors flex items-center justify-center gap-1.5"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M2.5 7l3 3 6-6" stroke="#0F4C35" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                              Yes, that&apos;s us
+                            </button>
+                            <div className="w-px bg-gray-100" />
+                            <button
+                              type="button"
+                              onClick={() => { setCcStatus('idle'); setCcData(null); setCcNumber('') }}
+                              className="flex-1 py-3 text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+                            >
+                              Not our charity
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      <p className="text-[10px] text-gray-400 mt-2 text-center">
+                        Optional — you can also fill in the form below manually
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Organisation name */}
+              <div>
+                <label className="label">
+                  Organisation name
+                  {autoFilledFields.has('name') && <AutoFilledBadge />}
+                </label>
+                <input
+                  required
+                  className="input"
+                  placeholder="e.g. Bright Futures Charity"
+                  value={form.name}
+                  onChange={(e) => {
+                    update('name', e.target.value)
+                    setAutoFilledFields(s => { const n = new Set(s); n.delete('name'); return n })
+                  }}
+                />
               </div>
 
               {/* Nonprofit type */}
@@ -385,16 +713,18 @@ export default function OnboardingPage() {
                 </select>
               </div>
 
-              {/* Registration number — dynamic label */}
-              <div>
-                <label className="label">{getRegistrationLabel(form.country)}</label>
-                <input
-                  className="input"
-                  placeholder="Optional"
-                  value={form.registration_number}
-                  onChange={(e) => update('registration_number', e.target.value)}
-                />
-              </div>
+              {/* Registration number — shown for non-UK only (UK uses the CC flow above) */}
+              {!isUK && (
+                <div>
+                  <label className="label">{getRegistrationLabel(form.country)}</label>
+                  <input
+                    className="input"
+                    placeholder="Optional"
+                    value={form.registration_number}
+                    onChange={(e) => update('registration_number', e.target.value)}
+                  />
+                </div>
+              )}
 
               {/* Primary sector */}
               <div>
@@ -414,24 +744,36 @@ export default function OnboardingPage() {
 
               {/* Location */}
               <div>
-                <label className="label">City / Region</label>
+                <label className="label">
+                  City / Region
+                  {autoFilledFields.has('location') && <AutoFilledBadge />}
+                </label>
                 <input
                   required
                   className="input"
-                  placeholder="e.g. Chicago, Illinois"
+                  placeholder={isUK ? 'e.g. Manchester, Greater Manchester' : 'e.g. Chicago, Illinois'}
                   value={form.location}
-                  onChange={(e) => update('location', e.target.value)}
+                  onChange={(e) => {
+                    update('location', e.target.value)
+                    setAutoFilledFields(s => { const n = new Set(s); n.delete('location'); return n })
+                  }}
                 />
               </div>
 
               {/* Annual income */}
               <div>
-                <label className="label">Annual income <span className="text-gray-400 font-normal">({currency.code})</span></label>
+                <label className="label">
+                  Annual income <span className="text-gray-400 font-normal">({currency.code})</span>
+                  {autoFilledFields.has('annual_income') && <AutoFilledBadge />}
+                </label>
                 <select
                   required
                   className="input"
                   value={form.annual_income}
-                  onChange={(e) => update('annual_income', e.target.value)}
+                  onChange={(e) => {
+                    update('annual_income', e.target.value)
+                    setAutoFilledFields(s => { const n = new Set(s); n.delete('annual_income'); return n })
+                  }}
                 >
                   <option value="">Select income range...</option>
                   {incomeWithCurrency.map((o) => (
@@ -442,14 +784,22 @@ export default function OnboardingPage() {
 
               {/* Beneficiaries */}
               <div>
-                <label className="label">Who do you help? (beneficiaries)</label>
+                <label className="label">
+                  Who do you help? (beneficiaries)
+                  {autoFilledFields.has('beneficiaries') && <AutoFilledBadge />}
+                </label>
                 <textarea
                   required
                   rows={3}
                   className="input resize-none"
-                  placeholder="e.g. Young people aged 11–25 experiencing mental health challenges and social isolation in underserved communities."
+                  placeholder={isUK
+                    ? 'e.g. Young people aged 11–25 experiencing mental health challenges in underserved communities.'
+                    : 'e.g. Young people aged 11–25 experiencing mental health challenges and social isolation in underserved communities.'}
                   value={form.beneficiaries}
-                  onChange={(e) => update('beneficiaries', e.target.value)}
+                  onChange={(e) => {
+                    update('beneficiaries', e.target.value)
+                    setAutoFilledFields(s => { const n = new Set(s); n.delete('beneficiaries'); return n })
+                  }}
                 />
               </div>
 
@@ -495,10 +845,10 @@ export default function OnboardingPage() {
             </div>
             <h2 className="font-display text-2xl font-bold text-[#0D1117] mb-3">Finding your grants...</h2>
             <p className="text-gray-500 text-sm max-w-xs mx-auto">
-              Our AI is scanning 2,400+ grants worldwide and scoring your eligibility for each one. This takes about 10–15 seconds.
+              Our AI is scanning 2,400+ grants and scoring your eligibility for each one. This takes about 10–15 seconds.
             </p>
             <div className="mt-6 space-y-2 max-w-xs mx-auto">
-              {['Analysing your organisation profile...', 'Scanning grant databases worldwide...', 'Scoring eligibility...'].map((msg, i) => (
+              {['Analysing your charity profile...', 'Scanning UK grant databases...', 'Scoring eligibility...'].map((msg, i) => (
                 <div key={msg} className="flex items-center gap-2 text-sm text-gray-400">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#00C875] animate-pulse" style={{ animationDelay: `${i * 0.3}s` }} />
                   {msg}
@@ -521,7 +871,7 @@ export default function OnboardingPage() {
               We found {matchCount} grant{matchCount !== 1 ? 's' : ''} for you!
             </h2>
             <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              Each one has been scored for eligibility with a specific reason why it matches your organisation. Let&apos;s go explore them.
+              Each one has been scored for eligibility with a specific reason why it matches your charity. Let&apos;s go explore them.
             </p>
             <button
               onClick={() => router.push('/dashboard')}
