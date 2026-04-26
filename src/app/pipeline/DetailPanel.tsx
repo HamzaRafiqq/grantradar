@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import Link from 'next/link'
 import type { GrantMatchWithGrant, MatchStatus } from '@/types'
 import { canSeeFunderName, canSeeApplyLink } from '@/lib/plans'
 import { daysUntil, scoreColor } from '@/lib/utils'
@@ -202,6 +203,27 @@ export default function DetailPanel({ match, plan, onClose, onSave, onDelete }: 
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C35] bg-white resize-none leading-relaxed"
             />
           </div>
+
+          {/* AI Application Writer */}
+          {['pro', 'agency'].includes(plan) ? (
+            <div>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">AI Writer</label>
+              <Link
+                href={`/applications/${match.id}/write`}
+                className="flex items-center gap-2 w-full bg-[#0F4C35] text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-[#0c3d2a] transition-colors"
+              >
+                <span>✦</span>
+                Write application with AI
+              </Link>
+            </div>
+          ) : (
+            <div className="bg-[#F4F6F5] rounded-xl p-3 text-center">
+              <p className="text-xs text-gray-500 mb-1.5">✍️ AI Application Writer</p>
+              <Link href="/pricing" className="text-xs text-[#0F4C35] font-medium hover:underline">
+                Upgrade to Pro to use →
+              </Link>
+            </div>
+          )}
 
           {/* Apply link */}
           {showApply && match.grant.application_url && (
