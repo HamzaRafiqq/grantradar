@@ -85,10 +85,10 @@ export default function GrantCard({
   const funderType   = match.grant.funder_type ?? 'UK Funder'
   const displayName  = showFunder
     ? match.grant.name
-    : (match.grant.public_title ?? match.grant.name)
+    : (match.grant.public_title ?? `${funderType} Opportunity`)
   const displayDesc  = showFunder
     ? match.grant.description
-    : (match.grant.public_description ?? match.grant.description)
+    : (match.grant.public_description ?? 'Upgrade to see full grant details and eligibility criteria.')
 
   const statusOpt = statusOptions.find(o => o.value === status)!
 
