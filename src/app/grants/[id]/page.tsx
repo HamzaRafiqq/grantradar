@@ -27,7 +27,9 @@ export default async function GrantDetailPage({ params }: { params: Promise<{ id
     .single()
 
   const days = daysUntil(grant.deadline)
-  const isPro = profile?.plan === 'pro'
+  const plan = profile?.plan ?? 'free'
+  const isPaid = plan === 'starter' || plan === 'pro' || plan === 'agency'
+  const isPro = isPaid // alias used by GrantDetailClient
 
   return (
     <AppShell orgName={org.name} plan={profile?.plan}>
@@ -43,8 +45,12 @@ export default async function GrantDetailPage({ params }: { params: Promise<{ id
         <div className="card mb-5">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <h1 className="font-display text-2xl font-bold text-[#0D1117]">{grant.name}</h1>
-              <p className="text-gray-400 text-sm mt-1">{grant.funder}</p>
+              <h1 className="font-display text-2xl font-bold text-[#0D1117]">
+                {isPaid ? grant.name : (grant.public_title ?? `${grant.funder_type ?? 'UK'} Grant Opportunity`)}
+              </h1>
+              <p className="text-gray-400 text-sm mt-1">
+                {isPaid ? grant.funder : (grant.funder_type ?? 'UK Funder')}
+              </p>
             </div>
             {match && (
               <span className={`text-sm font-bold px-3 py-1.5 rounded-full flex-shrink-0 ${scoreColor(match.eligibility_score)}`}>
@@ -73,17 +79,26 @@ export default async function GrantDetailPage({ params }: { params: Promise<{ id
             </div>
           </div>
 
-          <a
-            href={grant.application_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary text-sm py-2.5"
-          >
-            Apply Now
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 13L13 3M13 3H7M13 3v6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </a>
+          {isPaid ? (
+            <a
+              href={grant.application_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary text-sm py-2.5"
+            >
+              Apply Now
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 13L13 3M13 3H7M13 3v6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          ) : (
+            <Link
+              href="/pricing"
+              className="btn-primary text-sm py-2.5"
+            >
+              🔒 Upgrade to Apply
+            </Link>
+          )}
         </div>
 
         {/* Description & criteria */}
