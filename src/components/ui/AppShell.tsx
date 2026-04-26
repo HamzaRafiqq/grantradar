@@ -39,6 +39,17 @@ const navItems = [
     ),
   },
   {
+    href: '/documents',
+    label: 'Documents',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M10 2H5a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V6l-4-4z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round"/>
+        <path d="M10 2v4h4" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round"/>
+        <path d="M6 10h6M6 13h4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
+  {
     href: '/pricing',
     label: 'Upgrade',
     icon: (
