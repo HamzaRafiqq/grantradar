@@ -47,6 +47,12 @@ export async function calculateTrustScore(
     .select('status, eligibility_score, notes, amount_requested')
     .eq('user_id', org.user_id)
 
+  // Documents in vault (real data now)
+  const { data: docRows } = await supabase
+    .from('documents')
+    .select('category')
+    .eq('org_id', orgId)
+
   // Previous score (for delta in emails)
   const { data: prevHistory } = await supabase
     .from('trust_score_history')
@@ -57,6 +63,8 @@ export async function calculateTrustScore(
     .maybeSingle()
 
   const matches: { status: string; eligibility_score: number; notes: string | null; amount_requested: number | null }[] = matchRows ?? []
+  const docCategories = new Set<string>((docRows ?? []).map((d: { category: string }) => d.category))
+  const docCount = docRows?.length ?? 0
 
   // ── Score buckets ─────────────────────────────────────────────────────────
   const scores: TrustScores = {
@@ -84,12 +92,14 @@ export async function calculateTrustScore(
   }
   scores.financial = Math.min(scores.financial, 20)
 
-  // ── PROFILE COMPLETENESS / DOCUMENTS (max 20) ─────────────────────────────
-  if ((org.name?.trim().length ?? 0) > 5)                         scores.documents += 4
-  if ((org.beneficiaries?.trim().length ?? 0) > 30)               scores.documents += 4
-  if ((org.current_projects?.trim().length ?? 0) > 30)            scores.documents += 4
-  if ((org.location?.trim().length ?? 0) > 2)                     scores.documents += 4
-  if (org.sector && org.sector !== 'other')                       scores.documents += 4
+  // ── DOCUMENT VAULT (max 20) ───────────────────────────────────────────────
+  // 4 pts per key category present, up to 5 categories = 20 pts
+  if (docCategories.has('Legal'))      scores.documents += 4
+  if (docCategories.has('Financial'))  scores.documents += 4
+  if (docCategories.has('Governance')) scores.documents += 4
+  if (docCategories.has('Policies'))   scores.documents += 4
+  if (docCategories.has('HR'))         scores.documents += 4
+  scores.documents = Math.min(scores.documents, 20)
 
   // ── TRACK RECORD (max 20) ─────────────────────────────────────────────────
   const wonApps     = matches.filter(m => m.status === 'won')
@@ -123,8 +133,18 @@ export async function calculateTrustScore(
     improvements.push('Add your charity registration number to boost your governance score by 4 points')
   if (scores.financial < 15 && org.annual_income === 'under_100k')
     improvements.push('Your profile shows under £100k income — update it if your income has grown to improve your score')
+  if (!docCategories.has('Legal'))
+    improvements.push('Upload legal documents (e.g. constitution, governing document) to your Document Vault — worth 4 points')
+  if (!docCategories.has('Financial'))
+    improvements.push('Upload financial documents (e.g. latest accounts) to your Document Vault — worth 4 points')
+  if (!docCategories.has('Governance'))
+    improvements.push('Upload governance documents (e.g. trustee list, board minutes) to your Document Vault — worth 4 points')
+  if (!docCategories.has('Policies'))
+    improvements.push('Upload your key policies (e.g. safeguarding, EDI) to your Document Vault — worth 4 points')
+  if (docCount === 0)
+    improvements.push('Your Document Vault is empty — uploading documents can add up to 20 points to your Trust Score')
   if ((org.beneficiaries?.trim().length ?? 0) < 100)
-    improvements.push('Write a detailed beneficiary description (100+ words) to improve your profile and application quality scores')
+    improvements.push('Write a detailed beneficiary description (100+ words) to improve your application quality score')
   if ((org.current_projects?.trim().length ?? 0) < 100)
     improvements.push('Add detailed current projects (100+ words) to show funders your active work')
   if (wonApps.length === 0)
