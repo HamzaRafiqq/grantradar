@@ -1,8 +1,14 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AppShell from '@/components/ui/AppShell'
 import PipelineBoard from './PipelineBoard'
 import type { GrantMatchWithGrant } from '@/types'
+
+export const metadata: Metadata = {
+  title: 'Pipeline — FundsRadar',
+  robots: { index: false, follow: false },
+}
 
 export default async function PipelinePage() {
   const supabase = await createClient()

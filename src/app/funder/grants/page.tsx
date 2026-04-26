@@ -1,7 +1,13 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import FunderShell from '../FunderShell'
+
+export const metadata: Metadata = {
+  title: 'My Grants — FundsRadar Funder Portal',
+  robots: { index: false, follow: false },
+}
 
 const STATUS_COLORS: Record<string, string> = {
   draft:    'bg-gray-100 text-gray-600',
@@ -66,8 +72,8 @@ export default async function FunderGrantsPage() {
             </Link>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-            <table className="w-full text-sm">
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto shadow-sm">
+            <table className="w-full text-sm min-w-[600px]">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
                   <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Grant</th>

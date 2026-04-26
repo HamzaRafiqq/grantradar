@@ -1,7 +1,13 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import FunderShell from '../FunderShell'
+
+export const metadata: Metadata = {
+  title: 'Funder Dashboard — FundsRadar',
+  robots: { index: false, follow: false },
+}
 
 const STATUS_COLORS: Record<string, string> = {
   draft:    'bg-gray-100 text-gray-600',

@@ -1,5 +1,11 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Navbar from '@/components/ui/Navbar'
+
+export const metadata: Metadata = {
+  title: 'About FundsRadar — AI Grant Discovery for UK Charities',
+  description: 'Learn how FundsRadar was built to help UK charities find funding faster using AI — saving fundraising teams 8–10 hours every week.',
+}
 
 export default function AboutPage() {
   return (
@@ -9,10 +15,10 @@ export default function AboutPage() {
 
         <div className="mb-12">
           <h1 className="font-display text-4xl md:text-5xl font-bold text-[#0D1117] mb-6">
-            Built for nonprofits that deserve better tools
+            Built for charities that deserve better tools
           </h1>
           <p className="text-gray-500 text-lg leading-relaxed">
-            FundsRadar was built to help nonprofits and charities worldwide spend less time searching and more time doing.
+            FundsRadar was built to help UK charities and fundraising teams spend less time searching and more time doing.
           </p>
         </div>
 
@@ -20,17 +26,17 @@ export default function AboutPage() {
           <div className="card">
             <h2 className="font-display text-2xl font-bold text-[#0D1117] mb-4">Our story</h2>
             <p className="text-gray-600 leading-relaxed mb-4">
-              After working with dozens of nonprofits and charities, we kept seeing the same problem: brilliant organisations doing vital work were missing out on funding simply because they didn&apos;t have the time or resources to find it. Grant searching was manual, scattered across dozens of websites, and took 8–10 hours a week that most fundraising teams simply didn&apos;t have.
+              After working with dozens of UK charities, we kept seeing the same problem: brilliant organisations doing vital work were missing out on funding simply because they didn&apos;t have the time or resources to find it. Grant searching was manual, scattered across dozens of websites, and took 8–10 hours a week that most fundraising teams simply didn&apos;t have.
             </p>
             <p className="text-gray-600 leading-relaxed">
-              We built FundsRadar to change that. By combining real-time web search with Claude AI, we can match your nonprofit or charity to relevant grants in your country in seconds — not hours — and explain exactly why you qualify in plain English.
+              We built FundsRadar to change that. By combining real-time web search with Claude AI, we can match your charity to relevant UK grants in seconds — not hours — and explain exactly why you qualify in plain English.
             </p>
           </div>
 
           <div className="card">
             <h2 className="font-display text-2xl font-bold text-[#0D1117] mb-4">Our mission</h2>
             <p className="text-gray-600 leading-relaxed">
-              Every nonprofit should have access to the same quality of grant intelligence as the largest organisations with dedicated development teams. FundsRadar levels the playing field — giving small and medium nonprofits an AI-powered fundraising team they couldn&apos;t otherwise afford, wherever they are in the world.
+              Every UK charity should have access to the same quality of grant intelligence as the largest organisations with dedicated development teams. FundsRadar levels the playing field — giving small and medium charities an AI-powered fundraising team they couldn&apos;t otherwise afford.
             </p>
           </div>
 
@@ -39,7 +45,7 @@ export default function AboutPage() {
             <div className="grid sm:grid-cols-3 gap-6 mt-2">
               {[
                 { icon: '🔍', title: 'We search', desc: 'Our AI scans 2,400+ grant databases worldwide and live web sources to find active funding opportunities in your country.' },
-                { icon: '🎯', title: 'We match', desc: 'Claude AI scores every grant against your nonprofit profile — sector, size, country, and work.' },
+                { icon: '🎯', title: 'We match', desc: 'Claude AI scores every grant against your charity profile — sector, size, location, and work.' },
                 { icon: '✍️', title: 'We draft', desc: 'Get an AI-written opening paragraph for every application in 10 seconds.' },
               ].map(item => (
                 <div key={item.title} className="text-center">
@@ -54,7 +60,7 @@ export default function AboutPage() {
           <div className="card bg-[#0F4C35] text-white">
             <h2 className="font-display text-2xl font-bold mb-4">Get in touch</h2>
             <p className="text-white/80 leading-relaxed mb-4">
-              We&apos;re always happy to talk to nonprofits, charities, grant consultants, or anyone interested in what we&apos;re building.
+              We&apos;re always happy to talk to charities, fundraising teams, grant consultants, or anyone interested in what we&apos;re building.
             </p>
             <a href="mailto:hello@fundsradar.co" className="inline-flex items-center gap-2 bg-white text-[#0F4C35] font-semibold px-5 py-2.5 rounded-xl hover:bg-gray-100 transition-colors text-sm">
               hello@fundsradar.co

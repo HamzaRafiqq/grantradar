@@ -1,7 +1,13 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import FunderShell from '../FunderShell'
+
+export const metadata: Metadata = {
+  title: 'Applications — FundsRadar Funder Portal',
+  robots: { index: false, follow: false },
+}
 
 const STATUS_OPTIONS = [
   { value: '',             label: 'All statuses' },
@@ -128,8 +134,8 @@ export default async function FunderApplicationsPage({
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-x-auto">
+            <table className="w-full text-sm min-w-[640px]">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
                   <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Charity</th>

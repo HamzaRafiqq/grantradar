@@ -1,6 +1,12 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AppShell from '@/components/ui/AppShell'
+
+export const metadata: Metadata = {
+  title: 'Dashboard — FundsRadar',
+  robots: { index: false, follow: false },
+}
 import DashboardClient from './DashboardClient'
 import DashboardGrants from './DashboardGrants'
 import TrustScoreWidget from './TrustScoreWidget'

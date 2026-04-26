@@ -46,8 +46,8 @@ const LOCALE_CURRENCY: Record<string, Currency> = {
 function detectCurrency(): Currency {
   try {
     const region = new Intl.Locale(navigator.language).region ?? ''
-    return LOCALE_CURRENCY[region] ?? 'USD'
-  } catch { return 'USD' }
+    return LOCALE_CURRENCY[region] ?? 'GBP'
+  } catch { return 'GBP' }
 }
 
 // ── Feature lists ─────────────────────────────────────────────────────────────

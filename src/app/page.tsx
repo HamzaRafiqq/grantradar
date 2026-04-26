@@ -1,7 +1,25 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Navbar from '@/components/ui/Navbar'
 import ScrollReveal from '@/components/ui/ScrollReveal'
 import PricingToggle from '@/components/ui/PricingToggle'
+
+export const metadata: Metadata = {
+  title: 'FundsRadar — AI Grant Discovery for UK Charities',
+  description: 'FundsRadar matches your UK charity to hundreds of grants using AI, explains your eligibility, and helps you draft applications — saving your team 8–10 hours every week.',
+  openGraph: {
+    title: 'FundsRadar — AI Grant Discovery for UK Charities',
+    description: 'Find funding your charity is missing. Stop searching. Start winning.',
+    type: 'website',
+    locale: 'en_GB',
+    siteName: 'FundsRadar',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'FundsRadar — AI Grant Discovery for UK Charities',
+    description: 'Find funding your charity is missing. Stop searching. Start winning.',
+  },
+}
 
 const benefits = [
   {

@@ -1,7 +1,13 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AppShell from '@/components/ui/AppShell'
 import DocumentVault from './DocumentVault'
+
+export const metadata: Metadata = {
+  title: 'Document Vault — FundsRadar',
+  robots: { index: false, follow: false },
+}
 
 export default async function DocumentsPage() {
   const supabase = await createClient()
