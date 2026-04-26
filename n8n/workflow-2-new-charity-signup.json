@@ -67,7 +67,7 @@
           "parameters": [
             {
               "name": "Ocp-Apim-Subscription-Key",
-              "value": "={{ $vars.CHARITY_COMMISSION_API_KEY }}"
+              "value": "={{ $env.CHARITY_COMMISSION_API_KEY }}"
             }
           ]
         },
@@ -117,7 +117,7 @@
       "position": [1360, 340],
       "credentials": {
         "postgres": {
-          "id": "REPLACE_WITH_YOUR_POSTGRES_CREDENTIAL_ID",
+          "id": "7fqbMqLbhVdvyM7u",
           "name": "FundsRadar DB"
         }
       }
@@ -131,7 +131,7 @@
           "parameters": [
             {
               "name": "x-internal-secret",
-              "value": "={{ $vars.INTERNAL_API_SECRET }}"
+              "value": "={{ $env.INTERNAL_API_SECRET }}"
             },
             {
               "name": "Content-Type",
@@ -156,7 +156,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT\n  COUNT(*) AS match_count,\n  MAX(eligibility_score) AS top_score,\n  (\n    SELECT json_agg(\n      json_build_object(\n        'title', g.title,\n        'funder', g.funder,\n        'max_award', g.max_award,\n        'score', gm.eligibility_score\n      ) ORDER BY gm.eligibility_score DESC\n    )\n    FROM grant_matches gm\n    JOIN grants g ON gm.grant_id = g.id\n    WHERE gm.user_id = $1\n    ORDER BY gm.eligibility_score DESC\n    LIMIT 3\n  ) AS top_grants\nFROM grant_matches\nWHERE user_id = $1;",
+        "query": "SELECT\n  COUNT(*) AS match_count,\n  MAX(eligibility_score) AS top_score,\n  (\n    SELECT json_agg(\n      json_build_object(\n        'title', g.name,\n        'funder', g.funder,\n        'max_award', g.max_award,\n        'score', gm.eligibility_score\n      ) ORDER BY gm.eligibility_score DESC\n    )\n    FROM grant_matches gm\n    JOIN grants g ON gm.grant_id = g.id\n    WHERE gm.user_id = $1\n    ORDER BY gm.eligibility_score DESC\n    LIMIT 3\n  ) AS top_grants\nFROM grant_matches\nWHERE user_id = $1;",
         "additionalFields": {
           "queryParams": "={{ [$('Validate Payload').item.json.userId] }}"
         }
@@ -168,7 +168,7 @@
       "position": [1800, 340],
       "credentials": {
         "postgres": {
-          "id": "REPLACE_WITH_YOUR_POSTGRES_CREDENTIAL_ID",
+          "id": "7fqbMqLbhVdvyM7u",
           "name": "FundsRadar DB"
         }
       }
@@ -192,7 +192,7 @@
           "parameters": [
             {
               "name": "api-key",
-              "value": "={{ $vars.BREVO_API_KEY }}"
+              "value": "={{ $env.BREVO_API_KEY }}"
             },
             {
               "name": "Content-Type",

@@ -63,8 +63,8 @@ function CategoryBar({ label, value, color }: { label: string; value: number; co
   return (
     <div>
       <div className="flex justify-between items-center mb-1">
-        <span className="text-xs text-gray-600 font-medium">{label}</span>
-        <span className="text-xs font-bold text-[#0D1117]">{value}<span className="text-gray-400 font-normal">/20</span></span>
+        <span className="text-xs text-gray-600 font-medium whitespace-nowrap">{label}</span>
+        <span className="text-xs font-bold text-[#0D1117] whitespace-nowrap ml-2">{value}<span className="text-gray-400 font-normal">/20</span></span>
       </div>
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div
@@ -101,20 +101,21 @@ export default function TrustScore({ total, scores, improvements, recalculating,
         <GradeBadge total={total} />
       </div>
 
-      {/* Score + categories */}
-      <div className="flex gap-6 items-center mb-5">
+      {/* Circle — centred */}
+      <div className="flex justify-center mb-4">
         <CircularProgress score={total} color={ring} />
+      </div>
 
-        <div className="flex-1 space-y-2.5 min-w-0">
-          {(Object.keys(scores) as (keyof TrustScores)[]).map(key => (
-            <CategoryBar
-              key={key}
-              label={CATEGORY_LABELS[key]}
-              value={scores[key]}
-              color={ring}
-            />
-          ))}
-        </div>
+      {/* Category bars — full width */}
+      <div className="space-y-2.5 mb-5">
+        {(Object.keys(scores) as (keyof TrustScores)[]).map(key => (
+          <CategoryBar
+            key={key}
+            label={CATEGORY_LABELS[key]}
+            value={scores[key]}
+            color={ring}
+          />
+        ))}
       </div>
 
       {/* Improvements */}

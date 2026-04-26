@@ -63,7 +63,7 @@
       "position": [920, 340],
       "credentials": {
         "postgres": {
-          "id": "REPLACE_WITH_YOUR_POSTGRES_CREDENTIAL_ID",
+          "id": "7fqbMqLbhVdvyM7u",
           "name": "FundsRadar DB"
         }
       }
@@ -108,7 +108,7 @@
           "parameters": [
             {
               "name": "api-key",
-              "value": "={{ $vars.BREVO_API_KEY }}"
+              "value": "={{ $env.BREVO_API_KEY }}"
             },
             {
               "name": "Content-Type",

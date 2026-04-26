@@ -173,70 +173,66 @@ export default function DashboardGrants({ matches, plan, orgCountry }: Props) {
   return (
     <div>
       {/* Filter bar */}
-      <div className="bg-white rounded-[12px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-4 mb-6 space-y-4">
-        {/* Row 1: search + sort + amount + deadline */}
-        <div className="flex flex-wrap gap-3 items-center">
-          {/* Search */}
-          <div className="relative flex-1 min-w-[180px]">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.75"/>
-              <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search grants or funders..."
-              value={filters.search}
-              onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
-              className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F4C35] bg-white"
-            />
-          </div>
+      <div className="bg-white rounded-[12px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-4 mb-6 space-y-3">
+        {/* Row 1: search full width */}
+        <div className="relative">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.75"/>
+            <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+          </svg>
+          <input
+            type="text"
+            placeholder="Search grants or funders..."
+            value={filters.search}
+            onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
+            className="w-full pl-8 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F4C35] bg-white"
+          />
+        </div>
 
-          {/* Sort */}
+        {/* Row 2: selects — horizontally scrollable on mobile */}
+        <div className="flex gap-2 overflow-x-auto pb-0.5 -mx-1 px-1" style={{scrollbarWidth:'none'}}>
           <select
             value={filters.sort}
             onChange={e => setFilters(f => ({ ...f, sort: e.target.value as SortOption }))}
-            className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0F4C35] bg-white"
+            className="text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0F4C35] bg-white flex-shrink-0"
           >
             <option value="best">Best match</option>
-            <option value="deadline">Deadline: soonest</option>
-            <option value="amount_high">Amount: highest</option>
-            <option value="amount_low">Amount: lowest</option>
+            <option value="deadline">Deadline ↑</option>
+            <option value="amount_high">Amount ↓</option>
+            <option value="amount_low">Amount ↑</option>
           </select>
 
-          {/* Amount */}
           <select
             value={filters.amount}
             onChange={e => setFilters(f => ({ ...f, amount: e.target.value as AmountRange }))}
-            className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0F4C35] bg-white"
+            className="text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0F4C35] bg-white flex-shrink-0"
           >
             <option value="any">Any amount</option>
-            <option value="under5k">Under £5,000</option>
-            <option value="5k_25k">£5,000 – £25,000</option>
-            <option value="25k_100k">£25,000 – £100,000</option>
-            <option value="over100k">Over £100,000</option>
+            <option value="under5k">Under £5k</option>
+            <option value="5k_25k">£5k–£25k</option>
+            <option value="25k_100k">£25k–£100k</option>
+            <option value="over100k">Over £100k</option>
           </select>
 
-          {/* Deadline */}
           <select
             value={filters.deadline}
             onChange={e => setFilters(f => ({ ...f, deadline: e.target.value as DeadlineRange }))}
-            className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0F4C35] bg-white"
+            className="text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0F4C35] bg-white flex-shrink-0"
           >
             <option value="any">Any deadline</option>
             <option value="month">This month</option>
-            <option value="3months">Next 3 months</option>
-            <option value="6months">Next 6 months</option>
+            <option value="3months">3 months</option>
+            <option value="6months">6 months</option>
           </select>
 
-          {/* Country scope */}
           <select
             value={filters.countryScope}
             onChange={e => setFilters(f => ({ ...f, countryScope: e.target.value as CountryScope }))}
-            className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0F4C35] bg-white"
+            className="text-xs border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0F4C35] bg-white flex-shrink-0"
           >
             <option value="all">All countries</option>
-            {orgCountry && <option value="mine">My country ({orgCountry})</option>}
-            <option value="global">Global grants only</option>
+            {orgCountry && <option value="mine">My country</option>}
+            <option value="global">Global only</option>
           </select>
         </div>
 

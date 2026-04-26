@@ -118,7 +118,9 @@ export default async function DashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <p className="text-gray-400 text-sm mb-0.5">{greeting} {locale.flag}</p>
-            <h1 className="font-display text-2xl font-bold text-[#0D1117]">{org.name}</h1>
+            <h1 className="font-display text-2xl font-bold text-[#0D1117]">
+              {org.name.charAt(0) + org.name.slice(1).toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}
+            </h1>
             <p className="text-gray-400 text-sm mt-0.5">
               {locale.orgTerm.charAt(0).toUpperCase() + locale.orgTerm.slice(1)} · {org.country ?? 'United Kingdom'} · Your matched grants
             </p>
@@ -129,12 +131,12 @@ export default async function DashboardPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {stats.map((stat) => (
-            <div key={stat.label} className="card">
-              <div className="text-2xl mb-1">{stat.icon}</div>
-              <div className={`font-bold text-2xl ${stat.warn ? 'text-orange-500' : stat.highlight ? 'text-[#0F4C35]' : 'text-[#0D1117]'}`}>
+            <div key={stat.label} className={`bg-white rounded-[12px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-5 border-l-4 ${stat.warn ? 'border-orange-400' : stat.highlight ? 'border-[#00C875]' : 'border-transparent'}`}>
+              <div className="text-xl mb-2">{stat.icon}</div>
+              <div className={`font-bold text-3xl leading-none ${stat.warn ? 'text-orange-500' : stat.highlight ? 'text-[#0F4C35]' : 'text-[#0D1117]'}`}>
                 {stat.value}
               </div>
-              <div className="text-gray-400 text-xs mt-0.5">{stat.label}</div>
+              <div className="text-gray-400 text-xs mt-1.5 font-medium">{stat.label}</div>
             </div>
           ))}
         </div>

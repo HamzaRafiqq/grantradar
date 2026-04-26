@@ -75,7 +75,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse a 360Giving JSON dataset into normalised grant rows\n// for upsert into our 'grants' table.\n//\n// 360Giving grants have fields like:\n//   id, title, description, currency, amountAwarded,\n//   plannedDates.endDate, fundingOrganization[0].name\n//\n// We map them to our schema:\n//   source_id, title, description, funder, max_award,\n//   deadline, geographic_focus, is_active, url\n\nconst raw = $input.first().json;\n\n// The dataset may be the array directly, or wrapped in a 'grants' key\nlet grants = [];\nif (Array.isArray(raw)) {\n  grants = raw;\n} else if (raw && Array.isArray(raw.grants)) {\n  grants = raw.grants;\n} else {\n  // Empty or unexpected format — skip\n  return [];\n}\n\nconst rows = [];\n\nfor (const g of grants) {\n  try {\n    const funder =\n      (g.fundingOrganization && g.fundingOrganization[0]?.name) ||\n      $('Loop Over Datasets').item.json.publisher ||\n      'Unknown Funder';\n\n    const deadline =\n      (g.plannedDates && g.plannedDates[0]?.endDate) ||\n      (g.plannedDates && g.plannedDates.endDate) ||\n      null;\n\n    const maxAward =\n      typeof g.amountAwarded === 'number'\n        ? g.amountAwarded\n        : typeof g.amountAppliedFor === 'number'\n        ? g.amountAppliedFor\n        : null;\n\n    if (!g.id || !g.title) continue;\n\n    rows.push({\n      json: {\n        source_id:        g.id,\n        title:            (g.title || '').substring(0, 255),\n        description:      (g.description || '').substring(0, 2000),\n        funder:           funder.substring(0, 255),\n        max_award:        maxAward,\n        currency:         g.currency || 'GBP',\n        deadline:         deadline || null,\n        geographic_focus: 'England',\n        is_active:        deadline ? new Date(deadline) > new Date() : true,\n        url:              g.dataSource || null,\n        source:           '360giving'\n      }\n    });\n  } catch (err) {\n    // Skip malformed entries\n  }\n}\n\nconsole.log(`Parsed ${rows.length} grants from dataset`);\nreturn rows;\n"
+        "jsCode": "// Parse a 360Giving JSON dataset into normalised grant rows\n// for upsert into our 'grants' table.\n//\n// 360Giving grants have fields like:\n//   id, title, description, currency, amountAwarded,\n//   plannedDates.endDate, fundingOrganization[0].name\n//\n// We map them to our schema:\n//   source_id, name, description, funder, max_award,\n//   deadline, geographic_focus, is_active, application_url\n\nconst raw = $input.first().json;\n\n// The dataset may be the array directly, or wrapped in a 'grants' key\nlet grants = [];\nif (Array.isArray(raw)) {\n  grants = raw;\n} else if (raw && Array.isArray(raw.grants)) {\n  grants = raw.grants;\n} else {\n  // Empty or unexpected format — skip\n  return [];\n}\n\nconst rows = [];\n\nfor (const g of grants) {\n  try {\n    const funder =\n      (g.fundingOrganization && g.fundingOrganization[0]?.name) ||\n      $('Loop Over Datasets').item.json.publisher ||\n      'Unknown Funder';\n\n    const deadline =\n      (g.plannedDates && g.plannedDates[0]?.endDate) ||\n      (g.plannedDates && g.plannedDates.endDate) ||\n      null;\n\n    const maxAward =\n      typeof g.amountAwarded === 'number'\n        ? g.amountAwarded\n        : typeof g.amountAppliedFor === 'number'\n        ? g.amountAppliedFor\n        : null;\n\n    if (!g.id || !g.title) continue;\n\n    rows.push({\n      json: {\n        source_id:        g.id,\n        name:             (g.title || '').substring(0, 255),\n        description:      (g.description || '').substring(0, 2000),\n        funder:           funder.substring(0, 255),\n        max_award:        maxAward,\n        currency:         g.currency || 'GBP',\n        deadline:         deadline || null,\n        geographic_focus: 'England',\n        is_active:        deadline ? new Date(deadline) > new Date() : true,\n        application_url:  g.dataSource || null,\n        source:           '360giving'\n      }\n    });\n  } catch (err) {\n    // Skip malformed entries\n  }\n}\n\nconsole.log(`Parsed ${rows.length} grants from dataset`);\nreturn rows;\n"
       },
       "id": "a1b2c3d4-0001-0001-0001-000000000006",
       "name": "Parse & Clean Grants",
@@ -86,8 +86,10 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO grants (\n  source_id, title, description, funder, max_award,\n  currency, deadline, geographic_focus, is_active, url, source\n)\nVALUES (\n  {{ $json.source_id }},\n  {{ $json.title }},\n  {{ $json.description }},\n  {{ $json.funder }},\n  {{ $json.max_award }},\n  {{ $json.currency }},\n  {{ $json.deadline }},\n  {{ $json.geographic_focus }},\n  {{ $json.is_active }},\n  {{ $json.url }},\n  {{ $json.source }}\n)\nON CONFLICT (source_id) DO UPDATE SET\n  title           = EXCLUDED.title,\n  description     = EXCLUDED.description,\n  funder          = EXCLUDED.funder,\n  max_award       = EXCLUDED.max_award,\n  deadline        = EXCLUDED.deadline,\n  is_active       = EXCLUDED.is_active,\n  url             = EXCLUDED.url,\n  updated_at      = NOW()\nRETURNING id, (xmax = 0) AS inserted;",
-        "additionalFields": {}
+        "query": "INSERT INTO grants (\n  source_id, name, description, funder, max_award,\n  currency, deadline, geographic_focus, is_active, application_url, source\n)\nVALUES (\n  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11\n)\nON CONFLICT (source_id) DO UPDATE SET\n  name            = EXCLUDED.name,\n  description     = EXCLUDED.description,\n  funder          = EXCLUDED.funder,\n  max_award       = EXCLUDED.max_award,\n  deadline        = EXCLUDED.deadline,\n  is_active       = EXCLUDED.is_active,\n  application_url = EXCLUDED.application_url,\n  updated_at      = NOW()\nRETURNING id, (xmax = 0) AS inserted;",
+        "additionalFields": {
+          "queryParams": "={{ [$json.source_id, $json.name, $json.description, $json.funder, $json.max_award, $json.currency, $json.deadline, $json.geographic_focus, $json.is_active, $json.application_url, $json.source] }}"
+        }
       },
       "id": "a1b2c3d4-0001-0001-0001-000000000007",
       "name": "Upsert Grants to DB",
@@ -97,7 +99,7 @@
       "continueOnFail": true,
       "credentials": {
         "postgres": {
-          "id": "REPLACE_WITH_YOUR_POSTGRES_CREDENTIAL_ID",
+          "id": "7fqbMqLbhVdvyM7u",
           "name": "FundsRadar DB"
         }
       }
@@ -115,7 +117,7 @@
       "position": [1140, 440],
       "credentials": {
         "postgres": {
-          "id": "REPLACE_WITH_YOUR_POSTGRES_CREDENTIAL_ID",
+          "id": "7fqbMqLbhVdvyM7u",
           "name": "FundsRadar DB"
         }
       }
@@ -133,7 +135,7 @@
       "position": [1360, 440],
       "credentials": {
         "postgres": {
-          "id": "REPLACE_WITH_YOUR_POSTGRES_CREDENTIAL_ID",
+          "id": "7fqbMqLbhVdvyM7u",
           "name": "FundsRadar DB"
         }
       }
@@ -147,7 +149,7 @@
           "parameters": [
             {
               "name": "api-key",
-              "value": "={{ $vars.BREVO_API_KEY }}"
+              "value": "={{ $env.BREVO_API_KEY }}"
             },
             {
               "name": "Content-Type",

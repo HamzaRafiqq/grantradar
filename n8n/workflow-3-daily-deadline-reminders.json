@@ -21,7 +21,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT\n  gm.id            AS match_id,\n  gm.user_id,\n  gm.grant_id,\n  gm.pipeline_stage,\n  p.email,\n  o.name           AS org_name,\n  g.title          AS grant_title,\n  g.funder         AS grant_funder,\n  g.deadline,\n  g.url            AS grant_url,\n  g.max_award,\n  -- Days until deadline (integer)\n  (g.deadline::date - CURRENT_DATE)::int AS days_remaining\nFROM grant_matches gm\nJOIN profiles      p  ON p.id        = gm.user_id\nJOIN organisations o  ON o.user_id   = gm.user_id\nJOIN grants        g  ON g.id        = gm.grant_id\nWHERE\n  g.deadline IS NOT NULL\n  AND g.deadline::date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'\n  AND gm.pipeline_stage NOT IN ('won', 'lost', 'no_action')\n  AND g.is_active = true\nORDER BY g.deadline ASC;",
+        "query": "SELECT\n  gm.id            AS match_id,\n  gm.user_id,\n  gm.grant_id,\n  gm.status        AS pipeline_stage,\n  p.email,\n  o.name           AS org_name,\n  g.name           AS grant_title,\n  g.funder         AS grant_funder,\n  g.deadline,\n  g.application_url AS grant_url,\n  g.max_award,\n  -- Days until deadline (integer)\n  (g.deadline::date - CURRENT_DATE)::int AS days_remaining\nFROM grant_matches gm\nJOIN profiles      p  ON p.id        = gm.user_id\nJOIN organisations o  ON o.user_id   = gm.user_id\nJOIN grants        g  ON g.id        = gm.grant_id\nWHERE\n  g.deadline IS NOT NULL\n  AND g.deadline::date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'\n  AND gm.status NOT IN ('won', 'lost', 'submitted')\n  AND g.is_active = true\nORDER BY g.deadline ASC;",
         "additionalFields": {}
       },
       "id": "a3b4c5d6-0003-0003-0003-000000000002",
@@ -31,7 +31,7 @@
       "position": [480, 300],
       "credentials": {
         "postgres": {
-          "id": "REPLACE_WITH_YOUR_POSTGRES_CREDENTIAL_ID",
+          "id": "7fqbMqLbhVdvyM7u",
           "name": "FundsRadar DB"
         }
       }
@@ -76,7 +76,7 @@
           "parameters": [
             {
               "name": "api-key",
-              "value": "={{ $vars.BREVO_API_KEY }}"
+              "value": "={{ $env.BREVO_API_KEY }}"
             },
             {
               "name": "Content-Type",

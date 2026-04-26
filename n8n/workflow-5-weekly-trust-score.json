@@ -31,7 +31,7 @@
       "position": [480, 300],
       "credentials": {
         "postgres": {
-          "id": "REPLACE_WITH_YOUR_POSTGRES_CREDENTIAL_ID",
+          "id": "7fqbMqLbhVdvyM7u",
           "name": "FundsRadar DB"
         }
       }
@@ -56,7 +56,7 @@
           "parameters": [
             {
               "name": "x-internal-secret",
-              "value": "={{ $vars.INTERNAL_API_SECRET }}"
+              "value": "={{ $env.INTERNAL_API_SECRET }}"
             },
             {
               "name": "Content-Type",
@@ -93,7 +93,7 @@
       "position": [1140, 200],
       "credentials": {
         "postgres": {
-          "id": "REPLACE_WITH_YOUR_POSTGRES_CREDENTIAL_ID",
+          "id": "7fqbMqLbhVdvyM7u",
           "name": "FundsRadar DB"
         }
       }
@@ -117,7 +117,7 @@
           "parameters": [
             {
               "name": "api-key",
-              "value": "={{ $vars.BREVO_API_KEY }}"
+              "value": "={{ $env.BREVO_API_KEY }}"
             },
             {
               "name": "Content-Type",

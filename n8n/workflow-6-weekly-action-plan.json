@@ -1,0 +1,158 @@
+{
+  "name": "Workflow 6: Weekly AI Action Plan",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "a6b7c8d9-0006-0006-0006-000000000001",
+      "name": "Every Monday 7 AM UTC",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [260, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT p.id AS user_id, p.email, o.name AS org_name\nFROM profiles p\nJOIN organisations o ON o.user_id = p.id\nWHERE p.plan != 'free'\n   OR EXISTS (\n     SELECT 1 FROM grant_matches gm\n     WHERE gm.user_id = p.id\n       AND gm.created_at > NOW() - INTERVAL '7 days'\n   )\nLIMIT 100;",
+        "additionalFields": {}
+      },
+      "id": "a6b7c8d9-0006-0006-0006-000000000002",
+      "name": "Get Active Users",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [480, 300],
+      "credentials": {
+        "postgres": {
+          "id": "7fqbMqLbhVdvyM7u",
+          "name": "FundsRadar DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "a6b7c8d9-0006-0006-0006-000000000003",
+      "name": "Loop Over Users",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.APP_URL }}/api/weekly-plan/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={\n  \"userId\": \"{{ $json.user_id }}\",\n  \"secret\": \"{{ $env.INTERNAL_API_SECRET }}\"\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "a6b7c8d9-0006-0006-0006-000000000004",
+      "name": "Generate Weekly Plan",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [920, 200],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the Weekly Action Plan email.\n\nconst response = $input.first().json;\nconst user = $('Loop Over Users').item.json;\n\n// If generation failed or returned no plan, skip\nif (!response.ok || !response.plan) {\n  console.log(`Skipping email for ${user.org_name} — plan generation failed`);\n  return [];\n}\n\nconst plan = response.plan;\nconst metrics = plan.metrics || {};\n\n// Format currency\nfunction fmt(n) {\n  if (!n) return '£0';\n  if (n >= 1000000) return '£' + (n / 1000000).toFixed(1) + 'm';\n  if (n >= 1000) return '£' + Math.round(n / 1000) + 'k';\n  return '£' + n.toLocaleString('en-GB');\n}\n\n// Build task list HTML\nfunction taskListHtml(tasks) {\n  if (!tasks || tasks.length === 0) return '<p style=\"color:#6B7280;font-size:14px\">No tasks this week.</p>';\n  return tasks.map(t => `\n    <div style=\"background:#f9fafb;border-radius:10px;padding:14px 16px;margin-bottom:10px\">\n      <div style=\"display:flex;justify-content:space-between;align-items:flex-start;gap:12px\">\n        <strong style=\"color:#0D1117;font-size:14px;line-height:1.4\">${t.title}</strong>\n        <span style=\"color:#9CA3AF;font-size:12px;white-space:nowrap;flex-shrink:0\">~${t.estimated_minutes} min</span>\n      </div>\n      <p style=\"color:#6B7280;font-size:13px;margin:6px 0 0;line-height:1.5\">${t.description}</p>\n      ${t.link ? `<a href=\"https://fundsradar.co${t.link}\" style=\"color:#0F4C35;font-size:12px;font-weight:600;text-decoration:none\">Go to ${t.link.replace('/', '')} →</a>` : ''}\n    </div>\n  `).join('');\n}\n\nconst urgentHtml   = taskListHtml(plan.urgent);\nconst importantHtml = taskListHtml(plan.important);\nconst socialHtml   = taskListHtml(plan.social_media);\n\n// Get current Monday\nconst now = new Date();\nconst day = now.getUTCDay();\nconst diff = day === 0 ? -6 : 1 - day;\nconst monday = new Date(now);\nmonday.setUTCDate(now.getUTCDate() + diff);\nconst weekLabel = monday.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });\n\nconst totalTasks = (plan.urgent?.length || 0) + (plan.important?.length || 0) + (plan.social_media?.length || 0);\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>\n<body style=\"font-family:'Segoe UI',Arial,sans-serif;background:#f4f6f5;margin:0;padding:24px\">\n  <div style=\"max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)\">\n\n    <!-- Header -->\n    <div style=\"background:#0F4C35;padding:28px 36px\">\n      <p style=\"color:rgba(255,255,255,0.6);font-size:13px;margin:0 0 4px;text-transform:uppercase;letter-spacing:0.05em\">Week of ${weekLabel}</p>\n      <h1 style=\"color:#ffffff;font-size:22px;margin:0 0 4px\">Your Weekly Action Plan</h1>\n      <p style=\"color:rgba(255,255,255,0.7);font-size:14px;margin:0\">${user.org_name}</p>\n    </div>\n\n    <div style=\"padding:32px 36px\">\n\n      <!-- Metrics row -->\n      <table style=\"width:100%;border-collapse:collapse;margin-bottom:28px\">\n        <tr>\n          <td style=\"text-align:center;padding:12px;background:#f4f6f5;border-radius:10px;margin:4px\">\n            <div style=\"font-size:22px;font-weight:bold;color:#0F4C35\">${metrics.trust_score || 0}/100</div>\n            <div style=\"font-size:11px;color:#6B7280;margin-top:2px\">Trust Score</div>\n          </td>\n          <td style=\"width:8px\"></td>\n          <td style=\"text-align:center;padding:12px;background:#f4f6f5;border-radius:10px\">\n            <div style=\"font-size:22px;font-weight:bold;color:#0D1117\">${metrics.active_applications || 0}</div>\n            <div style=\"font-size:11px;color:#6B7280;margin-top:2px\">Active Apps</div>\n          </td>\n          <td style=\"width:8px\"></td>\n          <td style=\"text-align:center;padding:12px;background:${(metrics.grants_closing_week || 0) > 0 ? '#FEF3C7' : '#f4f6f5'};border-radius:10px\">\n            <div style=\"font-size:22px;font-weight:bold;color:${(metrics.grants_closing_week || 0) > 0 ? '#B45309' : '#0D1117'}\">${metrics.grants_closing_week || 0}</div>\n            <div style=\"font-size:11px;color:#6B7280;margin-top:2px\">Closing Week</div>\n          </td>\n          <td style=\"width:8px\"></td>\n          <td style=\"text-align:center;padding:12px;background:#f4f6f5;border-radius:10px\">\n            <div style=\"font-size:18px;font-weight:bold;color:#0D1117\">${fmt(metrics.total_potential)}</div>\n            <div style=\"font-size:11px;color:#6B7280;margin-top:2px\">Total Potential</div>\n          </td>\n        </tr>\n      </table>\n\n      <!-- Task count banner -->\n      <div style=\"background:#E8F2ED;border-radius:10px;padding:12px 16px;margin-bottom:28px;text-align:center\">\n        <p style=\"color:#0F4C35;font-size:14px;font-weight:600;margin:0\">You have ${totalTasks} action items this week</p>\n      </div>\n\n      <!-- URGENT -->\n      <h2 style=\"color:#DC2626;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px\">🔴 Urgent This Week</h2>\n      ${urgentHtml}\n\n      <!-- IMPORTANT -->\n      <h2 style=\"color:#B45309;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:24px 0 12px\">🟡 Important This Week</h2>\n      ${importantHtml}\n\n      <!-- SOCIAL MEDIA -->\n      <h2 style=\"color:#7C3AED;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:24px 0 12px\">📱 Social Media This Week</h2>\n      ${socialHtml}\n\n      <!-- AI RECOMMENDATION -->\n      ${plan.ai_recommendation ? `\n      <div style=\"background:#0F4C35;border-radius:12px;padding:18px 20px;margin:24px 0\">\n        <h2 style=\"color:#00C875;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px\">💡 AI Recommendation</h2>\n        <p style=\"color:rgba(255,255,255,0.9);font-size:14px;margin:0;line-height:1.6\">${plan.ai_recommendation}</p>\n      </div>\n      ` : ''}\n\n      <!-- CTA -->\n      <div style=\"text-align:center;margin:28px 0 8px\">\n        <a href=\"https://fundsradar.co/weekly-plan\" style=\"display:inline-block;background:#0F4C35;color:#ffffff;font-weight:bold;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px\">View Full Plan →</a>\n      </div>\n\n      <p style=\"color:#9ca3af;font-size:12px;text-align:center;margin-top:20px\">Sent every Monday · <a href=\"https://fundsradar.co/settings\" style=\"color:#9ca3af\">Manage preferences</a></p>\n    </div>\n  </div>\n</body>\n</html>\n`;\n\nreturn [{\n  json: {\n    to:      user.email,\n    orgName: user.org_name,\n    subject: `Your FundsRadar action plan for the week of ${weekLabel}`,\n    html\n  }\n}];\n"
+      },
+      "id": "a6b7c8d9-0006-0006-0006-000000000005",
+      "name": "Build Action Plan Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1140, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/smtp/email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api-key",
+              "value": "={{ $env.BREVO_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={\n  \"sender\":      { \"name\": \"FundsRadar\", \"email\": \"hello@fundsradar.co\" },\n  \"to\":          [{ \"email\": \"{{ $json.to }}\", \"name\": \"{{ $json.orgName }}\" }],\n  \"subject\":     \"{{ $json.subject }}\",\n  \"htmlContent\": {{ JSON.stringify($json.html) }}\n}",
+        "options": {}
+      },
+      "id": "a6b7c8d9-0006-0006-0006-000000000006",
+      "name": "Send Action Plan Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1360, 200],
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Every Monday 7 AM UTC": {
+      "main": [
+        [{ "node": "Get Active Users", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Active Users": {
+      "main": [
+        [{ "node": "Loop Over Users", "type": "main", "index": 0 }]
+      ]
+    },
+    "Loop Over Users": {
+      "main": [
+        [{ "node": "Generate Weekly Plan", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Generate Weekly Plan": {
+      "main": [
+        [{ "node": "Build Action Plan Email", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Action Plan Email": {
+      "main": [
+        [{ "node": "Send Action Plan Email", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Action Plan Email": {
+      "main": [
+        [{ "node": "Loop Over Users", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "versionId": "a6b7c8d9-0006-0006-0006-aaaaaaaaaaaa",
+  "id": "workflow-006-weekly-action-plan",
+  "tags": [{ "name": "fundsradar" }, { "name": "scheduled" }]
+}
