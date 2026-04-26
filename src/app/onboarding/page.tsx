@@ -205,6 +205,19 @@ export default function OnboardingPage() {
     setMatchCount(data.count ?? 0)
     await fetch('/api/email/welcome', { method: 'POST' })
 
+    // Fire n8n Workflow 2: CC lookup + welcome email with match results
+    // (non-blocking — failure never breaks signup)
+    fetch('/api/n8n/new-charity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orgId:         org.id,
+        orgName:       org.name,
+        charityNumber: form.registration_number || null,
+        country:       'England',
+      }),
+    }).catch(() => { /* ignore */ })
+
     setLoading(false)
     setStep(4)
   }

@@ -1,0 +1,279 @@
+{
+  "name": "Workflow 2: New Charity Signup Welcome",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-charity",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a2b3c4d5-0002-0002-0002-000000000001",
+      "name": "Webhook: New Charity Signup",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [260, 300],
+      "webhookId": "new-charity"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"received\": true }",
+        "options": {}
+      },
+      "id": "a2b3c4d5-0002-0002-0002-000000000001b",
+      "name": "Respond 200 OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [480, 160]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate the incoming payload from FundsRadar.\n// Expected shape:\n// {\n//   userId: string,\n//   orgId: string,\n//   email: string,\n//   orgName: string,\n//   charityNumber: string | null,\n//   country: string\n// }\n\nconst body = $input.first().json.body || $input.first().json;\n\nif (!body.userId || !body.email) {\n  throw new Error('Missing required fields: userId, email');\n}\n\nreturn [{\n  json: {\n    userId:        body.userId,\n    orgId:         body.orgId,\n    email:         body.email,\n    orgName:       body.orgName || 'Your Organisation',\n    charityNumber: body.charityNumber || null,\n    country:       body.country || 'England'\n  }\n}];\n"
+      },
+      "id": "a2b3c4d5-0002-0002-0002-000000000002",
+      "name": "Validate Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 340]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "loose" },
+          "conditions": [
+            {
+              "id": "check-charity-number",
+              "leftValue": "={{ $json.charityNumber }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "isNotEmpty" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "a2b3c4d5-0002-0002-0002-000000000003",
+      "name": "Has Charity Number?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [700, 340]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.charitycommission.gov.uk/register/api/allcharitydetailsV2/{{ $json.charityNumber }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Ocp-Apim-Subscription-Key",
+              "value": "={{ $vars.CHARITY_COMMISSION_API_KEY }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "a2b3c4d5-0002-0002-0002-000000000004",
+      "name": "Fetch Charity Commission Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [920, 220],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract useful fields from the Charity Commission API response\n// and merge with the original payload.\n\nconst ccData = $input.first().json;\nconst original = $('Validate Payload').item.json;\n\n// CC API returns nested structure — extract what we need\nconst cc = ccData || {};\n\nreturn [{\n  json: {\n    ...original,\n    cc_reg_date:        cc.date_of_registration || null,\n    cc_income:          cc.latest_income || null,\n    cc_expenditure:     cc.latest_expenditure || null,\n    cc_activities:      (cc.activities || '').substring(0, 500),\n    cc_objectives:      (cc.charity_activities || '').substring(0, 500),\n    cc_website:         cc.contact_web || null,\n    cc_fetched:         true\n  }\n}];\n"
+      },
+      "id": "a2b3c4d5-0002-0002-0002-000000000005",
+      "name": "Extract CC Fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1140, 220]
+    },
+    {
+      "parameters": {
+        "jsCode": "// No charity number — pass through with cc_fetched: false\nconst original = $input.first().json;\nreturn [{ json: { ...original, cc_fetched: false } }];\n"
+      },
+      "id": "a2b3c4d5-0002-0002-0002-000000000005b",
+      "name": "Skip CC Lookup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 460]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE organisations SET\n  annual_income  = COALESCE($1::bigint, annual_income),\n  website        = COALESCE($2, website),\n  cc_fetched_at  = NOW()\nWHERE id = $3\nRETURNING id, name, sector, cause_areas, annual_income, nonprofit_type, location;",
+        "additionalFields": {
+          "queryParams": "={{ [$json.cc_income, $json.cc_website, $json.orgId] }}"
+        }
+      },
+      "id": "a2b3c4d5-0002-0002-0002-000000000006",
+      "name": "Update Org with CC Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [1360, 340],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "FundsRadar DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://fundsradar.co/api/grants/match",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-internal-secret",
+              "value": "={{ $vars.INTERNAL_API_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={\n  \"userId\": \"{{ $('Validate Payload').item.json.userId }}\",\n  \"orgId\":  \"{{ $('Validate Payload').item.json.orgId }}\",\n  \"trigger\": \"signup\"\n}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "a2b3c4d5-0002-0002-0002-000000000007",
+      "name": "Trigger Grant Matching",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1580, 340],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  COUNT(*) AS match_count,\n  MAX(eligibility_score) AS top_score,\n  (\n    SELECT json_agg(\n      json_build_object(\n        'title', g.title,\n        'funder', g.funder,\n        'max_award', g.max_award,\n        'score', gm.eligibility_score\n      ) ORDER BY gm.eligibility_score DESC\n    )\n    FROM grant_matches gm\n    JOIN grants g ON gm.grant_id = g.id\n    WHERE gm.user_id = $1\n    ORDER BY gm.eligibility_score DESC\n    LIMIT 3\n  ) AS top_grants\nFROM grant_matches\nWHERE user_id = $1;",
+        "additionalFields": {
+          "queryParams": "={{ [$('Validate Payload').item.json.userId] }}"
+        }
+      },
+      "id": "a2b3c4d5-0002-0002-0002-000000000008",
+      "name": "Get Match Results",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [1800, 340],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "FundsRadar DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the welcome email HTML with top matched grants.\n\nconst db      = $input.first().json;\nconst payload = $('Validate Payload').item.json;\n\nconst matchCount = db.match_count || 0;\nconst topGrants  = db.top_grants  || [];\n\nconst grantRows = topGrants.map((g, i) => `\n  <tr>\n    <td style=\"padding:12px 16px;border-bottom:1px solid #e5e7eb\">\n      <strong style=\"color:#0D1117\">${g.title}</strong><br>\n      <span style=\"color:#6b7280;font-size:13px\">${g.funder}</span>\n    </td>\n    <td style=\"padding:12px 16px;border-bottom:1px solid #e5e7eb;text-align:right;white-space:nowrap\">\n      ${g.max_award ? '£' + g.max_award.toLocaleString() : '—'}<br>\n      <span style=\"color:#0F4C35;font-weight:bold;font-size:13px\">${g.score}/10</span>\n    </td>\n  </tr>\n`).join('');\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<head><meta charset=\"utf-8\"></head>\n<body style=\"font-family:'Segoe UI',Arial,sans-serif;background:#f4f6f5;margin:0;padding:24px\">\n  <div style=\"max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)\">\n    <div style=\"background:#0F4C35;padding:32px 36px;text-align:center\">\n      <h1 style=\"color:#ffffff;font-size:22px;margin:0\">Welcome to FundsRadar 🎉</h1>\n      <p style=\"color:rgba(255,255,255,0.8);margin:8px 0 0\">Your grant matches are ready</p>\n    </div>\n    <div style=\"padding:32px 36px\">\n      <p style=\"color:#374151;font-size:15px\">Hi ${payload.orgName},</p>\n      <p style=\"color:#374151;font-size:15px\">Great news — our AI has found <strong>${matchCount} matched grants</strong> for your charity. Here are your top 3:</p>\n      <table style=\"width:100%;border-collapse:collapse;margin:20px 0;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden\">\n        <thead>\n          <tr style=\"background:#f9fafb\">\n            <th style=\"padding:10px 16px;text-align:left;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em\">Grant</th>\n            <th style=\"padding:10px 16px;text-align:right;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em\">Amount / Score</th>\n          </tr>\n        </thead>\n        <tbody>${grantRows}</tbody>\n      </table>\n      <div style=\"text-align:center;margin:28px 0\">\n        <a href=\"https://fundsradar.co/dashboard\" style=\"display:inline-block;background:#0F4C35;color:#ffffff;font-weight:bold;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px\">View All My Grants →</a>\n      </div>\n      <p style=\"color:#9ca3af;font-size:13px;text-align:center\">FundsRadar · <a href=\"https://fundsradar.co\" style=\"color:#9ca3af\">fundsradar.co</a></p>\n    </div>\n  </div>\n</body>\n</html>\n`;\n\nreturn [{\n  json: {\n    to:      payload.email,\n    orgName: payload.orgName,\n    subject: `Welcome to FundsRadar — ${matchCount} grant${matchCount !== 1 ? 's' : ''} matched for you`,\n    html\n  }\n}];\n"
+      },
+      "id": "a2b3c4d5-0002-0002-0002-000000000009",
+      "name": "Build Welcome Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2020, 340]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/smtp/email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api-key",
+              "value": "={{ $vars.BREVO_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={\n  \"sender\":      { \"name\": \"FundsRadar\", \"email\": \"hello@fundsradar.co\" },\n  \"to\":          [{ \"email\": \"{{ $json.to }}\", \"name\": \"{{ $json.orgName }}\" }],\n  \"subject\":     \"{{ $json.subject }}\",\n  \"htmlContent\": {{ JSON.stringify($json.html) }}\n}",
+        "options": {}
+      },
+      "id": "a2b3c4d5-0002-0002-0002-000000000010",
+      "name": "Send Welcome Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2240, 340]
+    }
+  ],
+  "connections": {
+    "Webhook: New Charity Signup": {
+      "main": [
+        [
+          { "node": "Respond 200 OK",   "type": "main", "index": 0 },
+          { "node": "Validate Payload", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Validate Payload": {
+      "main": [
+        [{ "node": "Has Charity Number?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Has Charity Number?": {
+      "main": [
+        [{ "node": "Fetch Charity Commission Data", "type": "main", "index": 0 }],
+        [{ "node": "Skip CC Lookup",               "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch Charity Commission Data": {
+      "main": [
+        [{ "node": "Extract CC Fields", "type": "main", "index": 0 }]
+      ]
+    },
+    "Extract CC Fields": {
+      "main": [
+        [{ "node": "Update Org with CC Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Skip CC Lookup": {
+      "main": [
+        [{ "node": "Update Org with CC Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Update Org with CC Data": {
+      "main": [
+        [{ "node": "Trigger Grant Matching", "type": "main", "index": 0 }]
+      ]
+    },
+    "Trigger Grant Matching": {
+      "main": [
+        [{ "node": "Get Match Results", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Match Results": {
+      "main": [
+        [{ "node": "Build Welcome Email", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Welcome Email": {
+      "main": [
+        [{ "node": "Send Welcome Email", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "versionId": "a2b3c4d5-0002-0002-0002-aaaaaaaaaaaa",
+  "id": "workflow-002-new-charity-signup",
+  "tags": [{ "name": "fundsradar" }, { "name": "webhook" }]
+}

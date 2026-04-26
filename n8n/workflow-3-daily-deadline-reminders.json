@@ -1,0 +1,141 @@
+{
+  "name": "Workflow 3: Daily Deadline Reminders",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "a3b4c5d6-0003-0003-0003-000000000001",
+      "name": "Every Morning 8AM UTC",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [260, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  gm.id            AS match_id,\n  gm.user_id,\n  gm.grant_id,\n  gm.pipeline_stage,\n  p.email,\n  o.name           AS org_name,\n  g.title          AS grant_title,\n  g.funder         AS grant_funder,\n  g.deadline,\n  g.url            AS grant_url,\n  g.max_award,\n  -- Days until deadline (integer)\n  (g.deadline::date - CURRENT_DATE)::int AS days_remaining\nFROM grant_matches gm\nJOIN profiles      p  ON p.id        = gm.user_id\nJOIN organisations o  ON o.user_id   = gm.user_id\nJOIN grants        g  ON g.id        = gm.grant_id\nWHERE\n  g.deadline IS NOT NULL\n  AND g.deadline::date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'\n  AND gm.pipeline_stage NOT IN ('won', 'lost', 'no_action')\n  AND g.is_active = true\nORDER BY g.deadline ASC;",
+        "additionalFields": {}
+      },
+      "id": "a3b4c5d6-0003-0003-0003-000000000002",
+      "name": "Find Upcoming Deadlines",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [480, 300],
+      "credentials": {
+        "postgres": {
+          "id": "REPLACE_WITH_YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "FundsRadar DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Group reminders by charity email and filter to only the\n// milestone days: 30, 14, 7, 1.\n// Produces one item per (email × grant) pair that needs a reminder today.\n\nconst MILESTONE_DAYS = [30, 14, 7, 1];\n\nconst rows = $input.all().map(item => item.json);\n\nif (rows.length === 0) {\n  console.log('No upcoming deadlines today — nothing to send.');\n  return [];\n}\n\nconst reminders = [];\n\nfor (const row of rows) {\n  const days = parseInt(row.days_remaining, 10);\n  if (!MILESTONE_DAYS.includes(days)) continue;\n\n  let urgency, subject, preheader;\n\n  if (days === 30) {\n    urgency   = 'info';\n    subject   = `Grant closing in 30 days: ${row.grant_title}`;\n    preheader = `You have a month to apply for funding from ${row.grant_funder}.`;\n  } else if (days === 14) {\n    urgency   = 'medium';\n    subject   = `2 weeks left: ${row.grant_title} — are you applying?`;\n    preheader = `The deadline is in 14 days. Make sure you're on track.`;\n  } else if (days === 7) {\n    urgency   = 'high';\n    subject   = `⚠️ URGENT: ${row.grant_title} closes in 7 days`;\n    preheader = `Act now — this grant closes in one week.`;\n  } else if (days === 1) {\n    urgency   = 'critical';\n    subject   = `🚨 FINAL REMINDER: ${row.grant_title} closes TOMORROW`;\n    preheader = `Last chance to apply. Deadline is tomorrow.`;\n  }\n\n  reminders.push({\n    json: {\n      ...row,\n      days,\n      urgency,\n      subject,\n      preheader\n    }\n  });\n}\n\nconsole.log(`Sending ${reminders.length} deadline reminders today`);\nreturn reminders;\n"
+      },
+      "id": "a3b4c5d6-0003-0003-0003-000000000003",
+      "name": "Filter to Milestone Days",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "a3b4c5d6-0003-0003-0003-000000000004",
+      "name": "Loop Over Reminders",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [920, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build urgency-appropriate email HTML.\n\nconst r = $input.first().json;\n\nconst URGENCY_COLORS = {\n  info:     { banner: '#0F4C35', badge: '#00C875', badgeText: '#0D1117',  emoji: '📅' },\n  medium:   { banner: '#0F4C35', badge: '#F59E0B', badgeText: '#ffffff', emoji: '📋' },\n  high:     { banner: '#B45309', badge: '#F59E0B', badgeText: '#ffffff', emoji: '⚠️' },\n  critical: { banner: '#991B1B', badge: '#EF4444', badgeText: '#ffffff', emoji: '🚨' }\n};\n\nconst c = URGENCY_COLORS[r.urgency] || URGENCY_COLORS.info;\n\nconst deadlineFormatted = r.deadline\n  ? new Date(r.deadline).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })\n  : 'Unknown';\n\nconst awardText = r.max_award\n  ? `Up to £${parseInt(r.max_award).toLocaleString()} available`\n  : '';\n\nconst dashboardUrl = `https://fundsradar.co/pipeline?grant=${r.grant_id}`;\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<head><meta charset=\"utf-8\"></head>\n<body style=\"font-family:'Segoe UI',Arial,sans-serif;background:#f4f6f5;margin:0;padding:24px\">\n  <div style=\"max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)\">\n    <div style=\"background:${c.banner};padding:28px 36px\">\n      <div style=\"display:inline-block;background:${c.badge};color:${c.badgeText};font-weight:bold;font-size:12px;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px\">\n        ${r.days} day${r.days !== 1 ? 's' : ''} remaining ${c.emoji}\n      </div>\n      <h1 style=\"color:#ffffff;font-size:20px;margin:0;line-height:1.3\">${r.grant_title}</h1>\n      <p style=\"color:rgba(255,255,255,0.75);margin:6px 0 0;font-size:14px\">${r.grant_funder}</p>\n    </div>\n    <div style=\"padding:28px 36px\">\n      <p style=\"color:#374151;font-size:15px\">Hi ${r.org_name},</p>\n      <p style=\"color:#374151;font-size:15px\">The deadline for <strong>${r.grant_title}</strong> is <strong>${deadlineFormatted}</strong> — that's ${r.days} day${r.days !== 1 ? 's' : ''} away.</p>\n      ${awardText ? `<p style=\"color:#374151;font-size:15px\">${awardText}.</p>` : ''}\n      <div style=\"background:#f9fafb;border-left:4px solid ${c.badge};border-radius:0 8px 8px 0;padding:14px 18px;margin:20px 0\">\n        <p style=\"margin:0;color:#374151;font-size:14px\"><strong>Deadline:</strong> ${deadlineFormatted}</p>\n        ${awardText ? `<p style=\"margin:6px 0 0;color:#374151;font-size:14px\"><strong>Amount:</strong> ${awardText}</p>` : ''}\n      </div>\n      <div style=\"text-align:center;margin:28px 0\">\n        <a href=\"${dashboardUrl}\" style=\"display:inline-block;background:${c.banner};color:#ffffff;font-weight:bold;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px\">View in Pipeline →</a>\n      </div>\n      <p style=\"color:#9ca3af;font-size:12px;text-align:center\">You're receiving this because you matched this grant on FundsRadar.<br><a href=\"https://fundsradar.co/settings\" style=\"color:#9ca3af\">Manage email preferences</a></p>\n    </div>\n  </div>\n</body>\n</html>\n`;\n\nreturn [{ json: { ...r, html } }];\n"
+      },
+      "id": "a3b4c5d6-0003-0003-0003-000000000005",
+      "name": "Build Reminder Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1140, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.brevo.com/v3/smtp/email",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api-key",
+              "value": "={{ $vars.BREVO_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={\n  \"sender\":      { \"name\": \"FundsRadar\", \"email\": \"alerts@fundsradar.co\" },\n  \"to\":          [{ \"email\": \"{{ $json.email }}\", \"name\": \"{{ $json.org_name }}\" }],\n  \"subject\":     \"{{ $json.subject }}\",\n  \"htmlContent\": {{ JSON.stringify($json.html) }}\n}",
+        "options": {}
+      },
+      "id": "a3b4c5d6-0003-0003-0003-000000000006",
+      "name": "Send Deadline Reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1360, 200],
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Every Morning 8AM UTC": {
+      "main": [
+        [{ "node": "Find Upcoming Deadlines", "type": "main", "index": 0 }]
+      ]
+    },
+    "Find Upcoming Deadlines": {
+      "main": [
+        [{ "node": "Filter to Milestone Days", "type": "main", "index": 0 }]
+      ]
+    },
+    "Filter to Milestone Days": {
+      "main": [
+        [{ "node": "Loop Over Reminders", "type": "main", "index": 0 }]
+      ]
+    },
+    "Loop Over Reminders": {
+      "main": [
+        [{ "node": "Build Reminder Email",   "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Build Reminder Email": {
+      "main": [
+        [{ "node": "Send Deadline Reminder", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Deadline Reminder": {
+      "main": [
+        [{ "node": "Loop Over Reminders",    "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "versionId": "a3b4c5d6-0003-0003-0003-aaaaaaaaaaaa",
+  "id": "workflow-003-daily-deadline-reminders",
+  "tags": [{ "name": "fundsradar" }, { "name": "scheduled" }]
+}
