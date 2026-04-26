@@ -5,13 +5,16 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+type AccountType = 'charity' | 'funder'
+
 export default function SignupPage() {
   const router = useRouter()
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [accountType, setAccountType] = useState<AccountType>('charity')
+  const [fullName, setFullName]       = useState('')
+  const [email, setEmail]             = useState('')
+  const [password, setPassword]       = useState('')
+  const [loading, setLoading]         = useState(false)
+  const [error, setError]             = useState('')
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -19,12 +22,16 @@ export default function SignupPage() {
     setError('')
 
     const supabase = createClient()
+    const redirectTo = accountType === 'funder'
+      ? `${window.location.origin}/funder/onboarding`
+      : `${window.location.origin}/onboarding`
+
     const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/onboarding`,
+        data: { full_name: fullName, account_type: accountType },
+        emailRedirectTo: redirectTo,
       },
     })
 
@@ -34,7 +41,7 @@ export default function SignupPage() {
       return
     }
 
-    router.push('/onboarding')
+    router.push(accountType === 'funder' ? '/funder/onboarding' : '/onboarding')
   }
 
   return (
@@ -52,10 +59,38 @@ export default function SignupPage() {
             <span className="font-display font-bold text-xl text-[#0F4C35]">FundsRadar</span>
           </Link>
           <h1 className="font-display text-3xl font-bold text-[#0D1117]">Create your account</h1>
-          <p className="text-gray-500 mt-2 text-sm">Start finding grants in minutes. Free forever, no card needed.</p>
+          <p className="text-gray-500 mt-2 text-sm">Join thousands of charities and funders on FundsRadar.</p>
         </div>
 
         <div className="card">
+          {/* Account type toggle */}
+          <div className="mb-6">
+            <label className="label mb-2 block">I am a…</label>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl">
+              {([
+                { value: 'charity', label: '🏛️ Charity / Nonprofit', desc: 'Find and apply for grants' },
+                { value: 'funder',  label: '💰 Grant-making Funder', desc: 'Post grants and review applications' },
+              ] as { value: AccountType; label: string; desc: string }[]).map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setAccountType(opt.value)}
+                  className={`flex flex-col items-center text-center p-3 rounded-lg transition-all text-xs font-medium ${
+                    accountType === opt.value
+                      ? 'bg-white shadow-sm text-[#0D1117]'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <span className="text-base mb-0.5">{opt.label.split(' ')[0]}</span>
+                  <span>{opt.label.slice(2)}</span>
+                  <span className={`text-[10px] mt-0.5 ${accountType === opt.value ? 'text-gray-400' : 'text-gray-400'}`}>
+                    {opt.desc}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <form onSubmit={handleSignup} className="space-y-5">
             <div>
               <label htmlFor="fullName" className="label">Full name</label>
@@ -64,9 +99,9 @@ export default function SignupPage() {
                 type="text"
                 required
                 className="input"
-                placeholder="Sarah Mitchell"
+                placeholder={accountType === 'funder' ? 'James Harrison' : 'Sarah Mitchell'}
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={e => setFullName(e.target.value)}
               />
             </div>
             <div>
@@ -76,9 +111,9 @@ export default function SignupPage() {
                 type="email"
                 required
                 className="input"
-                placeholder="sarah@yourcharity.org.uk"
+                placeholder={accountType === 'funder' ? 'james@yourfoundation.org' : 'sarah@yourcharity.org.uk'}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
               />
             </div>
             <div>
@@ -91,7 +126,7 @@ export default function SignupPage() {
                 className="input"
                 placeholder="At least 6 characters"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
               />
             </div>
 
@@ -111,10 +146,12 @@ export default function SignupPage() {
                   <svg className="animate-spin" width="18" height="18" viewBox="0 0 18 18" fill="none">
                     <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="2" strokeDasharray="22" strokeDashoffset="8"/>
                   </svg>
-                  Creating account...
+                  Creating account…
                 </>
+              ) : accountType === 'funder' ? (
+                'Create funder account →'
               ) : (
-                'Create account — it\'s free'
+                "Create account — it's free"
               )}
             </button>
           </form>

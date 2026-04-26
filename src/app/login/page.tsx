@@ -7,10 +7,10 @@ import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
+  const [email, setEmail]     = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError]     = useState('')
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -24,6 +24,22 @@ export default function LoginPage() {
       setError('Invalid email or password. Please try again.')
       setLoading(false)
       return
+    }
+
+    // Check if this user has a funder profile → route them to funder dashboard
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: funderProfile } = await supabase
+        .from('funder_profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (funderProfile) {
+        router.push('/funder/dashboard')
+        router.refresh()
+        return
+      }
     }
 
     router.push('/dashboard')
@@ -44,7 +60,7 @@ export default function LoginPage() {
             <span className="font-display font-bold text-xl text-[#0F4C35]">FundsRadar</span>
           </Link>
           <h1 className="font-display text-3xl font-bold text-[#0D1117]">Welcome back</h1>
-          <p className="text-gray-500 mt-2 text-sm">Sign in to see your matched grants.</p>
+          <p className="text-gray-500 mt-2 text-sm">Sign in to your account.</p>
         </div>
 
         <div className="card">
@@ -56,9 +72,9 @@ export default function LoginPage() {
                 type="email"
                 required
                 className="input"
-                placeholder="sarah@yourcharity.org.uk"
+                placeholder="your@email.org"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
               />
             </div>
             <div>
@@ -70,7 +86,7 @@ export default function LoginPage() {
                 className="input"
                 placeholder="Your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
               />
             </div>
 
@@ -90,16 +106,14 @@ export default function LoginPage() {
                   <svg className="animate-spin" width="18" height="18" viewBox="0 0 18 18" fill="none">
                     <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="2" strokeDasharray="22" strokeDashoffset="8"/>
                   </svg>
-                  Signing in...
+                  Signing in…
                 </>
-              ) : (
-                'Sign in'
-              )}
+              ) : 'Sign in'}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-5">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/signup" className="text-[#0F4C35] font-medium hover:underline">
               Sign up free
             </Link>
