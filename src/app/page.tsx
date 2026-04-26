@@ -120,14 +120,35 @@ const testimonials = [
   },
 ]
 
+// ── Updated stats (item 1) ──────────────────────────────────────────────────
 const stats = [
-  { value: '£1M+', label: 'Funding matched for UK charities' },
-  { value: '1,000+', label: 'Active UK grants tracked' },
-  { value: '170,000+', label: 'UK charities we can help' },
-  { value: '94%', label: 'Match accuracy rate' },
+  { value: '£1M+',    label: 'Funding matched for UK charities' },
+  { value: '1,200+',  label: 'Active UK grants in database' },
+  { value: '170,000', label: 'UK charities we can help' },
+  { value: '94%',     label: 'Match accuracy rate' },
 ]
 
 const funders = ['National Lottery', 'Esmée Fairbairn', 'Comic Relief', 'Lloyds Bank Foundation', 'The Henry Smith Charity', 'Paul Hamlyn Foundation']
+
+// ── FAQ data (item 5) ──────────────────────────────────────────────────────
+const faqs = [
+  {
+    q: 'Is my charity\'s data safe?',
+    a: 'Yes. All data is encrypted and stored on UK/EU servers. We are GDPR compliant and never sell your data.',
+  },
+  {
+    q: 'How is FundsRadar different from searching online?',
+    a: 'We match grants to your specific charity profile automatically. Instead of searching, you see only the grants you qualify for, scored by eligibility.',
+  },
+  {
+    q: 'Do you cover all UK funders?',
+    a: 'We pull from 360Giving (200+ funders), National Lottery, UKRI, Government grants, and more. Our database grows weekly.',
+  },
+  {
+    q: 'Can I cancel anytime?',
+    a: 'Yes, cancel from settings with one click. No questions asked.',
+  },
+]
 
 export default function LandingPage() {
   return (
@@ -164,7 +185,30 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats bar */}
+      {/* ── Trust badges (item 4) ──────────────────────────────────────────── */}
+      <section className="bg-white border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-gray-400 font-medium text-center">
+            <span className="flex items-center gap-1.5">
+              <span>🇬🇧</span> Built for UK charities
+            </span>
+            <span className="hidden sm:inline text-gray-200">|</span>
+            <span className="flex items-center gap-1.5">
+              <span>📊</span> Data from Charity Commission &amp; 360Giving
+            </span>
+            <span className="hidden sm:inline text-gray-200">|</span>
+            <span className="flex items-center gap-1.5">
+              <span>🔒</span> Secured by Cloudflare
+            </span>
+            <span className="hidden sm:inline text-gray-200">|</span>
+            <span className="flex items-center gap-1.5">
+              <span>✅</span> GDPR Compliant
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Social proof stats (item 1) ────────────────────────────────────── */}
       <section className="bg-white" style={{ borderBottom: '2px solid #E2E8E4' }}>
         <ScrollReveal>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
@@ -180,6 +224,32 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </ScrollReveal>
+      </section>
+
+      {/* ── Free tool callout — Grant Deadline Calendar (item 2) ──────────── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-2">
+        <ScrollReveal>
+          <div className="bg-[#0F4C35] rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6">
+            <div className="text-5xl flex-shrink-0">🗓️</div>
+            <div className="flex-1 text-center sm:text-left">
+              <div className="inline-flex items-center gap-2 bg-[#00C875]/20 rounded-full px-3 py-1 text-xs text-[#00C875] font-semibold mb-2">
+                FREE TOOL — No signup required
+              </div>
+              <h2 className="font-display text-xl md:text-2xl font-bold text-white mb-1">
+                UK Grant Deadline Calendar
+              </h2>
+              <p className="text-white/70 text-sm">
+                See all UK grant deadlines for the next 90 days — updated weekly.
+              </p>
+            </div>
+            <Link
+              href="/deadlines"
+              className="flex-shrink-0 inline-flex items-center gap-2 bg-white text-[#0F4C35] px-6 py-3 rounded-xl font-semibold text-sm hover:bg-gray-100 transition-colors whitespace-nowrap"
+            >
+              View free calendar →
+            </Link>
           </div>
         </ScrollReveal>
       </section>
@@ -292,7 +362,7 @@ export default function LandingPage() {
                     </svg>
                   ))}
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed flex-1 italic relative z-10">"{t.quote}"</p>
+                <p className="text-gray-600 text-sm leading-relaxed flex-1 italic relative z-10">&quot;{t.quote}&quot;</p>
                 <div className="flex items-center gap-3 mt-6 relative z-10">
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0"
@@ -333,10 +403,45 @@ export default function LandingPage() {
             <h2 className="font-display text-3xl md:text-4xl font-bold text-[#0D1117] mb-4">
               Simple, honest pricing
             </h2>
-            <p className="text-gray-500 text-lg mb-10">Start free. Upgrade when you're ready to unlock everything.</p>
+            <p className="text-gray-500 text-lg mb-10">Start free. Upgrade when you&apos;re ready to unlock everything.</p>
           </ScrollReveal>
           <PricingToggle />
         </div>
+      </section>
+
+      {/* ── FAQ section (item 5) ────────────────────────────────────────────── */}
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 py-[50px] md:py-20">
+        <ScrollReveal>
+          <div className="text-center mb-12">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-[#0D1117] mb-3">
+              Frequently asked questions
+            </h2>
+            <p className="text-gray-500 text-base">Everything you need to know before you get started.</p>
+          </div>
+        </ScrollReveal>
+        <div className="space-y-4">
+          {faqs.map((faq) => (
+            <ScrollReveal key={faq.q}>
+              <div className="bg-white rounded-[12px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-6">
+                <h3 className="font-display font-semibold text-[#0D1117] mb-2 flex items-start gap-2">
+                  <span className="text-[#00C875] flex-shrink-0 mt-0.5">Q</span>
+                  {faq.q}
+                </h3>
+                <p className="text-gray-500 text-sm leading-relaxed pl-5">{faq.a}</p>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+        <ScrollReveal>
+          <div className="text-center mt-10">
+            <p className="text-gray-500 text-sm">
+              Still have questions?{' '}
+              <a href="mailto:hello@fundsradar.co" className="text-[#0F4C35] font-semibold hover:text-[#00C875] transition-colors">
+                Email us →
+              </a>
+            </p>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* Final CTA */}
@@ -355,7 +460,7 @@ export default function LandingPage() {
               <span>✓ Cancel anytime</span>
             </div>
             <Link href="/signup" className="bg-white text-[#0F4C35] px-10 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-colors duration-200 inline-flex items-center gap-2 justify-center w-full sm:w-auto">
-              Find My Grants — It's Free
+              Find My Grants — It&apos;s Free
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M4 10h12M10 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -379,7 +484,7 @@ export default function LandingPage() {
             <div>
               <div className="text-white text-sm font-semibold mb-3">Product</div>
               <ul className="space-y-2 text-sm">
-                {[['Features', '/#features'], ['Pricing', '/pricing'], ['How it works', '/#how-it-works'], ['Sign up', '/signup']].map(([label, href]) => (
+                {[['Features', '/#features'], ['Pricing', '/pricing'], ['How it works', '/#how-it-works'], ['Grant Deadlines', '/deadlines'], ['Sign up', '/signup']].map(([label, href]) => (
                   <li key={label}><Link href={href} className="hover:text-white transition-colors">{label}</Link></li>
                 ))}
               </ul>
