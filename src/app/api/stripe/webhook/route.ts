@@ -24,11 +24,16 @@ export async function POST(req: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const userId = session.metadata?.supabase_user_id
+    // Use the plan stored in checkout metadata (starter / pro / agency)
+    const plan = session.metadata?.plan ?? 'starter'
 
     if (userId) {
       await supabase
         .from('profiles')
-        .update({ plan: 'pro' })
+        .update({
+          plan,
+          stripe_customer_id: session.customer as string,
+        })
         .eq('id', userId)
     }
   }

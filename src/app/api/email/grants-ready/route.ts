@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
+  // Protect this internal route — must be called with CRON_SECRET
+  const auth = req.headers.get('authorization')
+  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+  }
+
   try {
     const { Resend } = await import('resend')
     // eslint-disable-next-line @typescript-eslint/no-require-imports
