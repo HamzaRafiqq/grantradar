@@ -68,7 +68,7 @@ export default function SignupPage() {
             <label className="label mb-2 block">I am a…</label>
             <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl">
               {([
-                { value: 'charity', label: '🏛️ Charity / Nonprofit', desc: 'Find and apply for grants' },
+                { value: 'charity', label: '🏛️ Registered Charity', desc: 'Find and apply for grants' },
                 { value: 'funder',  label: '💰 Grant-making Funder', desc: 'Post grants and review applications' },
               ] as { value: AccountType; label: string; desc: string }[]).map(opt => (
                 <button

@@ -1,9 +1,24 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
+import { Playfair_Display, Instrument_Sans } from 'next/font/google'
 import './globals.css'
 
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-playfair',
+  display: 'swap',
+})
+
+const instrumentSans = Instrument_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-instrument',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
-  title: 'FundsRadar — Find Grants Your Charity is Missing',
+  title: 'FundsRadar — Find UK Charity Grants | AI-Powered Grant Discovery',
   description: 'FundsRadar matches your UK charity to hundreds of grants using AI — saving your fundraising team 8–10 hours every week.',
   keywords: 'charity grants UK, grant finder, charity funding, grant tracker, UK charity grants, fundraising tool',
   icons: {
@@ -19,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${playfair.variable} ${instrumentSans.variable}`}>
       <body>
         {children}
         {/* Crisp live chat widget */}

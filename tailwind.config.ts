@@ -37,8 +37,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ['Playfair Display', 'Georgia', 'serif'],
-        body: ['Instrument Sans', 'Inter', 'sans-serif'],
+        display: ['var(--font-playfair)', 'Playfair Display', 'Georgia', 'serif'],
+        body: ['var(--font-instrument)', 'Instrument Sans', 'Inter', 'sans-serif'],
       },
       borderRadius: {
         card: '12px',

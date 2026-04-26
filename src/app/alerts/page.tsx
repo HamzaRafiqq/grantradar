@@ -1,8 +1,14 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import AppShell from '@/components/ui/AppShell'
 import AlertPreferences from './AlertPreferences'
+
+export const metadata: Metadata = {
+  title: 'Grant Alerts — FundsRadar',
+  robots: { index: false, follow: false },
+}
 import { formatCurrency, formatDate, daysUntil } from '@/lib/utils'
 import type { GrantMatchWithGrant } from '@/types'
 

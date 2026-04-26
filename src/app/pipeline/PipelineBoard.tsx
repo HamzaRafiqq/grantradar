@@ -130,7 +130,7 @@ function DroppableColumn({ col, children, count, value }: {
   return (
     <div
       ref={setNodeRef}
-      className={`flex-shrink-0 w-60 rounded-[14px] border ${col.border} ${col.bg} p-3 transition-all ${
+      className={`flex-shrink-0 w-[240px] sm:w-60 rounded-[14px] border ${col.border} ${col.bg} p-3 transition-all ${
         isOver ? 'ring-2 ring-[#0F4C35] shadow-lg scale-[1.01]' : ''
       }`}
     >
@@ -293,7 +293,7 @@ export default function PipelineBoard({ matches: initial, plan }: Props) {
 
       {/* Board */}
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-6">
+        <div className="flex gap-4 overflow-x-auto pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
           {COLUMNS.map(col => {
             const cards    = colMatches(col.id)
             const colValue = cards.reduce((s, m) => s + ((m.amount_requested ?? m.grant.max_award) || 0), 0)

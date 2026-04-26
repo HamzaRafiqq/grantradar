@@ -28,7 +28,7 @@ export default function BlogPage() {
         <div className="mb-6">
           <span className="inline-block bg-[#E8F2ED] text-[#0F4C35] text-xs font-bold px-3 py-1.5 rounded-full mb-6">COMING SOON</span>
           <h1 className="font-display text-4xl md:text-5xl font-bold text-[#0D1117] mb-6">
-            Grant tips & funding advice for nonprofits worldwide
+            Grant tips & funding advice for UK charities
           </h1>
           <p className="text-gray-500 text-lg max-w-xl mx-auto">
             We&apos;re writing practical guides on finding grants, writing applications, and managing your funding pipeline. Be the first to know when we publish.
@@ -60,7 +60,7 @@ export default function BlogPage() {
         ) : (
           <div className="card py-8">
             <h2 className="font-display text-xl font-bold text-[#0D1117] mb-2">Get notified when we publish</h2>
-            <p className="text-gray-400 text-sm mb-6">No spam. Just useful content for nonprofit fundraising teams.</p>
+            <p className="text-gray-400 text-sm mb-6">No spam. Just useful content for charity fundraising teams.</p>
             <form onSubmit={handleSubscribe} className="flex gap-3 max-w-md mx-auto">
               <input
                 type="email"
