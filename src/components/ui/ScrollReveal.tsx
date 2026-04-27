@@ -2,18 +2,28 @@
 
 import { useEffect, useRef } from 'react'
 
-export default function ScrollReveal({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+interface Props {
+  children: React.ReactNode
+  className?: string
+  /** Delay in milliseconds before the reveal animation plays */
+  delay?: number
+}
+
+export default function ScrollReveal({ children, className = '', delay = 0 }: Props) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
 
-    // If already in viewport, reveal immediately
+    if (delay) el.style.transitionDelay = `${delay}ms`
+
+    // If already in viewport on mount, reveal immediately
     const rect = el.getBoundingClientRect()
-    if (rect.top < window.innerHeight) {
-      el.classList.add('reveal-visible')
-      return
+    if (rect.top < window.innerHeight * 0.95) {
+      // Small timeout so the initial paint is visible before animating
+      const t = setTimeout(() => el.classList.add('reveal-visible'), 60)
+      return () => clearTimeout(t)
     }
 
     const observer = new IntersectionObserver(
@@ -25,11 +35,11 @@ export default function ScrollReveal({ children, className = '' }: { children: R
           }
         })
       },
-      { threshold: 0, rootMargin: '0px 0px -20px 0px' }
+      { threshold: 0, rootMargin: '0px 0px -40px 0px' }
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [])
+  }, [delay])
 
   return (
     <div ref={ref} className={`reveal ${className}`}>

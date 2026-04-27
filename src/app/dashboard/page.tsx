@@ -130,8 +130,12 @@ export default async function DashboardPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          {stats.map((stat) => (
-            <div key={stat.label} className={`bg-white rounded-[12px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-4 sm:p-5 border-l-4 ${stat.warn ? 'border-orange-400' : stat.highlight ? 'border-[#00C875]' : 'border-transparent'}`}>
+          {stats.map((stat, i) => (
+            <div
+              key={stat.label}
+              className={`bg-white rounded-[12px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-4 sm:p-5 border-l-4 animate-scale-in ${stat.warn ? 'border-orange-400' : stat.highlight ? 'border-[#00C875]' : 'border-transparent'}`}
+              style={{ animationDelay: `${i * 80}ms` }}
+            >
               <div className="text-lg sm:text-xl mb-1.5 sm:mb-2">{stat.icon}</div>
               <div className={`font-bold text-xl sm:text-3xl leading-none truncate ${stat.warn ? 'text-orange-500' : stat.highlight ? 'text-[#0F4C35]' : 'text-[#0D1117]'}`}>
                 {stat.value}

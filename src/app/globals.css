@@ -26,19 +26,48 @@ h1, h2, h3, h4 {
 }
 
 .btn-primary {
-  @apply bg-[#0F4C35] text-white px-6 py-3 rounded-xl font-medium hover:bg-[#0c3d2a] transition-colors duration-200 inline-flex items-center gap-2;
+  @apply bg-[#0F4C35] text-white px-6 py-3 rounded-xl font-medium hover:bg-[#0c3d2a] transition-all duration-200 inline-flex items-center gap-2;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: -10%; left: -80%;
+  width: 55%; height: 120%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%);
+  transform: skewX(-18deg);
+  pointer-events: none;
+}
+.btn-primary:hover::after {
+  animation: shimmer-btn 0.55s ease forwards;
 }
 
 .btn-secondary {
-  @apply border-2 border-[#0F4C35] text-[#0F4C35] px-6 py-3 rounded-xl font-medium hover:bg-[#0F4C35] hover:text-white transition-colors duration-200 inline-flex items-center gap-2;
+  @apply border-2 border-[#0F4C35] text-[#0F4C35] px-6 py-3 rounded-xl font-medium hover:bg-[#0F4C35] hover:text-white transition-all duration-200 inline-flex items-center gap-2;
 }
 
 .btn-accent {
-  @apply bg-[#00C875] text-[#0D1117] px-6 py-3 rounded-xl font-semibold hover:bg-[#009E5D] hover:text-white transition-colors duration-200 inline-flex items-center gap-2;
+  @apply bg-[#00C875] text-[#0D1117] px-6 py-3 rounded-xl font-semibold hover:bg-[#009E5D] hover:text-white transition-all duration-200 inline-flex items-center gap-2;
+  position: relative;
+  overflow: hidden;
+}
+.btn-accent::after {
+  content: '';
+  position: absolute;
+  top: -10%; left: -80%;
+  width: 55%; height: 120%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
+  transform: skewX(-18deg);
+  pointer-events: none;
+}
+.btn-accent:hover::after {
+  animation: shimmer-btn 0.55s ease forwards;
 }
 
 .card {
   @apply bg-white rounded-[12px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-6;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .input {
@@ -49,15 +78,101 @@ h1, h2, h3, h4 {
   @apply block text-sm font-medium text-gray-700 mb-1;
 }
 
-/* Scroll reveal */
+/* ── Scroll reveal ───────────────────────────────────────────────────────── */
 .reveal {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transform: translateY(26px);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .reveal-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ── Keyframes ───────────────────────────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.93) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  40%       { transform: translateY(-14px) rotate(1deg); }
+  70%       { transform: translateY(-7px) rotate(-0.5deg); }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-20px); }
+}
+@keyframes slide-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes shimmer-btn {
+  from { left: -80%; opacity: 1; }
+  to   { left: 140%; opacity: 0; }
+}
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 200, 117, 0.5); }
+  50%       { box-shadow: 0 0 0 6px rgba(0, 200, 117, 0); }
+}
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes count-pop {
+  0%   { transform: scale(0.85); opacity: 0; }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Animation utility classes ───────────────────────────────────────────── */
+.animate-fade-up    { animation: fade-up    0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-in    { animation: fade-in    0.5s ease both; }
+.animate-scale-in   { animation: scale-in   0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-float      { animation: float      4s ease-in-out infinite; }
+.animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
+.animate-slide-left { animation: slide-left 0.65s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-pulse-dot  { animation: pulse-dot  2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite; }
+.animate-count-pop  { animation: count-pop  0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* ── Animation delays ────────────────────────────────────────────────────── */
+.anim-delay-75   { animation-delay: 75ms; }
+.anim-delay-150  { animation-delay: 150ms; }
+.anim-delay-225  { animation-delay: 225ms; }
+.anim-delay-300  { animation-delay: 300ms; }
+.anim-delay-375  { animation-delay: 375ms; }
+.anim-delay-450  { animation-delay: 450ms; }
+.anim-delay-500  { animation-delay: 500ms; }
+.anim-delay-600  { animation-delay: 600ms; }
+.anim-delay-700  { animation-delay: 700ms; }
+.anim-delay-800  { animation-delay: 800ms; }
+.anim-delay-900  { animation-delay: 900ms; }
+.anim-delay-1000 { animation-delay: 1000ms; }
+
+/* ── Gradient animated text ──────────────────────────────────────────────── */
+.text-gradient-animated {
+  background: linear-gradient(90deg, #00C875 0%, #00e5a0 40%, #00C875 80%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 3s linear infinite;
+}
+
+/* ── Hero background dot grid ────────────────────────────────────────────── */
+.hero-dot-grid {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
 /* Shimmer connecting line */

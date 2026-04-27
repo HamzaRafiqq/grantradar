@@ -14,10 +14,10 @@ export default function Navbar() {
   }, [])
 
   return (
-    <nav className={`bg-white sticky top-0 z-50 transition-shadow duration-300 ${scrolled ? 'shadow-[0_2px_16px_rgba(0,0,0,0.10)]' : 'border-b border-gray-100'}`}>
+    <nav className={`bg-white sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'shadow-[0_2px_20px_rgba(0,0,0,0.10)]' : 'border-b border-gray-100'}`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#0F4C35] flex items-center justify-center">
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-8 h-8 rounded-lg bg-[#0F4C35] flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <circle cx="9" cy="9" r="7" stroke="#00C875" strokeWidth="2"/>
               <circle cx="9" cy="9" r="3" fill="#00C875"/>
@@ -29,10 +29,10 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          <Link href="/#how-it-works" className="text-gray-600 hover:text-[#0F4C35] text-sm font-medium transition-colors">
+          <Link href="/#how-it-works" className="text-gray-600 hover:text-[#0F4C35] text-sm font-medium transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-[#0F4C35] after:transition-all after:duration-200 hover:after:w-full">
             How it works
           </Link>
-          <Link href="/pricing" className="text-gray-600 hover:text-[#0F4C35] text-sm font-medium transition-colors">
+          <Link href="/pricing" className="text-gray-600 hover:text-[#0F4C35] text-sm font-medium transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-[#0F4C35] after:transition-all after:duration-200 hover:after:w-full">
             Pricing
           </Link>
           <Link href="/login" className="text-gray-600 hover:text-[#0F4C35] text-sm font-medium transition-colors">

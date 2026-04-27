@@ -282,8 +282,12 @@ export default function PipelineBoard({ matches: initial, plan }: Props) {
           { label: 'Total value',  value: `£${totalValue.toLocaleString()}`,    icon: '💷' },
           { label: 'Won',          value: `£${wonValue.toLocaleString()}`,      icon: '🏆', green: wonValue > 0 },
           { label: 'Success rate', value: `${successRate}%`,                    icon: '📊' },
-        ].map(stat => (
-          <div key={stat.label} className="card p-4">
+        ].map((stat, i) => (
+          <div
+            key={stat.label}
+            className="card p-4 animate-scale-in"
+            style={{ animationDelay: `${i * 75}ms` }}
+          >
             <div className="text-xl sm:text-2xl mb-1">{stat.icon}</div>
             <div className={`font-bold text-lg sm:text-xl truncate ${stat.green ? 'text-green-600' : 'text-[#0D1117]'}`}>{stat.value}</div>
             <div className="text-gray-400 text-[10px] sm:text-xs mt-0.5">{stat.label}</div>
@@ -302,21 +306,27 @@ export default function PipelineBoard({ matches: initial, plan }: Props) {
       {/* Board */}
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory">
-          {COLUMNS.map(col => {
+          {COLUMNS.map((col, colIdx) => {
             const cards    = colMatches(col.id)
             const colValue = cards.reduce((s, m) => s + ((m.amount_requested ?? m.grant.max_award) || 0), 0)
             return (
-              <DroppableColumn key={col.id} col={col} count={cards.length} value={colValue}>
-                {cards.map(m => (
-                  <DraggableCard
-                    key={m.id}
-                    match={m}
-                    plan={plan}
-                    onOpen={setSelected}
-                    dragOccurred={dragOccurred}
-                  />
-                ))}
-              </DroppableColumn>
+              <div
+                key={col.id}
+                className="animate-fade-up flex-shrink-0"
+                style={{ animationDelay: `${colIdx * 60}ms` }}
+              >
+                <DroppableColumn col={col} count={cards.length} value={colValue}>
+                  {cards.map(m => (
+                    <DraggableCard
+                      key={m.id}
+                      match={m}
+                      plan={plan}
+                      onOpen={setSelected}
+                      dragOccurred={dragOccurred}
+                    />
+                  ))}
+                </DroppableColumn>
+              </div>
             )
           })}
         </div>

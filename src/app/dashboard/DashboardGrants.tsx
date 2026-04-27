@@ -294,14 +294,19 @@ export default function DashboardGrants({ matches, plan, orgCountry }: Props) {
             const isLocked = plan === 'free' && i >= 3
             const lockedCount = plan === 'free' ? Math.max(0, filtered.length - 3) : 0
             return (
-              <GrantCard
+              <div
                 key={match.id}
-                match={match}
-                isLocked={isLocked}
-                lockedCount={lockedCount}
-                plan={plan}
-                orgCountry={orgCountry}
-              />
+                className="animate-scale-in"
+                style={{ animationDelay: `${Math.min(i * 55, 440)}ms` }}
+              >
+                <GrantCard
+                  match={match}
+                  isLocked={isLocked}
+                  lockedCount={lockedCount}
+                  plan={plan}
+                  orgCountry={orgCountry}
+                />
+              </div>
             )
           })}
         </div>

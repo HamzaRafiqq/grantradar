@@ -3,6 +3,8 @@ import Link from 'next/link'
 import Navbar from '@/components/ui/Navbar'
 import ScrollReveal from '@/components/ui/ScrollReveal'
 import PricingToggle from '@/components/ui/PricingToggle'
+import AnimatedHero from '@/components/ui/AnimatedHero'
+import CountUp from '@/components/ui/CountUp'
 
 export const metadata: Metadata = {
   title: 'FundsRadar — AI Grant Discovery for UK Charities',
@@ -122,10 +124,16 @@ const testimonials = [
 
 // ── Updated stats (item 1) ──────────────────────────────────────────────────
 const stats = [
-  { value: '£1M+',    label: 'Funding matched for UK charities' },
-  { value: '1,200+',  label: 'Active UK grants in database' },
-  { value: '170,000', label: 'UK charities we can help' },
-  { value: '94%',     label: 'Match accuracy rate' },
+  {
+    end: 1000000,
+    prefix: '£',
+    formatFn: (n: number) => n >= 1_000_000 ? '1M' : n >= 1000 ? `${Math.round(n / 1000)}k` : `${n}`,
+    suffix: '+',
+    label: 'Funding matched for UK charities',
+  },
+  { end: 1200, suffix: '+', label: 'Active UK grants in database' },
+  { end: 170000, label: 'UK charities we can help' },
+  { end: 94, suffix: '%', label: 'Match accuracy rate' },
 ]
 
 const funders = ['National Lottery', 'Esmée Fairbairn', 'Comic Relief', 'Lloyds Bank Foundation', 'The Henry Smith Charity', 'Paul Hamlyn Foundation']
@@ -156,34 +164,7 @@ export default function LandingPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="bg-[#0F4C35] text-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 md:py-16 text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 text-sm mb-6">
-            <span className="w-2 h-2 rounded-full bg-[#00C875]" />
-            AI-powered grant discovery for UK charities
-          </div>
-          <h1 className="font-display text-4xl md:text-6xl font-bold text-white leading-tight mb-6 max-w-3xl mx-auto">
-            Find funding your charity is missing.
-            <br />
-            <span className="text-white">Stop searching. Start winning.</span>
-          </h1>
-          <p className="text-white/80 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            FundsRadar matches your charity to hundreds of UK grants using AI, explains your eligibility in plain English, and helps you draft applications — saving your team 8–10 hours every week.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/signup" className="bg-white text-[#0F4C35] px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-100 transition-colors duration-200 inline-flex items-center justify-center gap-2 w-full sm:w-auto">
-              Find My Grants — Free
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M4 10h12M10 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </Link>
-            <Link href="#how-it-works" className="bg-white/10 border border-white/30 text-white px-8 py-4 rounded-xl font-medium text-lg hover:bg-white/20 transition-colors duration-200 inline-flex items-center justify-center w-full sm:w-auto">
-              See how it works
-            </Link>
-          </div>
-          <p className="text-white/50 text-sm mt-5">Free forever for up to 3 grants. No credit card required.</p>
-        </div>
-      </section>
+      <AnimatedHero />
 
       {/* ── Trust badges (item 4) ──────────────────────────────────────────── */}
       <section className="bg-white border-b border-gray-100">
@@ -210,22 +191,26 @@ export default function LandingPage() {
 
       {/* ── Social proof stats (item 1) ────────────────────────────────────── */}
       <section className="bg-white" style={{ borderBottom: '2px solid #E2E8E4' }}>
-        <ScrollReveal>
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              {stats.map((s) => (
-                <div
-                  key={s.label}
-                  style={{ borderLeft: '3px solid #00C875', paddingLeft: '20px' }}
-                  className="text-left"
-                >
-                  <div className="font-display font-extrabold text-[#0F4C35] text-[2rem] md:text-[3rem] leading-none">{s.value}</div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            {stats.map((s, i) => (
+              <ScrollReveal key={s.label} delay={i * 100}>
+                <div style={{ borderLeft: '3px solid #00C875', paddingLeft: '20px' }} className="text-left">
+                  <div className="font-display font-extrabold text-[#0F4C35] text-[2rem] md:text-[3rem] leading-none">
+                    <CountUp
+                      end={s.end}
+                      prefix={s.prefix ?? ''}
+                      suffix={s.suffix ?? ''}
+                      formatFn={s.formatFn}
+                      duration={1800}
+                    />
+                  </div>
                   <div className="text-gray-500 text-sm mt-1">{s.label}</div>
                 </div>
-              ))}
-            </div>
+              </ScrollReveal>
+            ))}
           </div>
-        </ScrollReveal>
+        </div>
       </section>
 
       {/* ── Free tool callout — Grant Deadline Calendar (item 2) ──────────── */}
@@ -271,13 +256,13 @@ export default function LandingPage() {
           </div>
         </ScrollReveal>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {benefits.map((b) => (
-            <ScrollReveal key={b.title}>
+          {benefits.map((b, i) => (
+            <ScrollReveal key={b.title} delay={i * 80}>
               <div
-                className="card hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-[250ms] cursor-pointer"
+                className="card hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group"
                 style={{ borderTop: '3px solid #00C875' }}
               >
-                <div className="w-12 h-12 rounded-xl bg-[#E8F2ED] flex items-center justify-center mb-5">
+                <div className="w-12 h-12 rounded-xl bg-[#E8F2ED] flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-[#0F4C35]/10 transition-all duration-300">
                   {b.icon}
                 </div>
                 <h3 className="font-display text-xl font-semibold text-[#0D1117] mb-3">{b.title}</h3>
@@ -303,13 +288,13 @@ export default function LandingPage() {
           </ScrollReveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {steps.map((s, i) => (
-              <ScrollReveal key={s.step}>
+              <ScrollReveal key={s.step} delay={i * 120}>
                 <div className="relative">
                   {i < steps.length - 1 && (
                     <div className="hidden md:block absolute top-5 left-full w-full h-[2px] shimmer-line -translate-x-1/2" />
                   )}
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-[#00C875] text-[#0D1117] flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-[#00C875] text-[#0D1117] flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-[0_0_20px_rgba(0,200,117,0.4)]">
                       {s.step}
                     </div>
                     <h3 className="font-display text-xl font-semibold text-white">{s.title}</h3>
@@ -343,10 +328,10 @@ export default function LandingPage() {
           </div>
         </ScrollReveal>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {testimonials.map((t) => (
-            <ScrollReveal key={t.name}>
+          {testimonials.map((t, i) => (
+            <ScrollReveal key={t.name} delay={i * 80}>
               <div
-                className="card flex flex-col relative overflow-hidden"
+                className="card flex flex-col relative overflow-hidden hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300"
                 style={{ borderLeft: '3px solid #00C875' }}
               >
                 <div
