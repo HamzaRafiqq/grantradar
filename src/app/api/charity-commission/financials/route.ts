@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
           Accept: 'application/json',
           'Ocp-Apim-Subscription-Key': apiKey,
         },
-        next: { revalidate: 3600 },
+        cache: 'no-store',
       }
     )
 
@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
           Accept: 'application/json',
           'Ocp-Apim-Subscription-Key': apiKey,
         },
-        next: { revalidate: 3600 },
+        cache: 'no-store',
       }
     )
 
