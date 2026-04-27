@@ -33,7 +33,7 @@ export default async function PipelinePage() {
   })[]
 
   return (
-    <AppShell orgName={org.name} plan={plan}>
+    <AppShell orgName={org.name} plan={plan} charityNumber={org.charity_number}>
       <div className="px-4 sm:px-6 py-6 sm:py-8">
         <div className="mb-5 sm:mb-8">
           <h1 className="font-display text-xl sm:text-2xl font-bold text-[#0D1117]">Application Pipeline</h1>

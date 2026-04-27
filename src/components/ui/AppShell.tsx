@@ -83,10 +83,11 @@ const navItems = [
   },
 ]
 
-export default function AppShell({ children, orgName, plan }: {
+export default function AppShell({ children, orgName, plan, charityNumber }: {
   children: React.ReactNode
   orgName?: string
   plan?: string
+  charityNumber?: string
 }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -119,9 +120,24 @@ export default function AppShell({ children, orgName, plan }: {
           <div className="px-5 py-3 border-b border-white/10">
             <p className="text-white/40 text-xs uppercase tracking-wider mb-0.5">Organisation</p>
             <p className="text-white text-sm font-medium truncate">{orgName}</p>
-            {plan === 'pro' && (
-              <span className="inline-block mt-1 bg-[#00C875] text-[#0D1117] text-xs font-bold px-2 py-0.5 rounded-full">PRO</span>
-            )}
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              {plan === 'pro' && (
+                <span className="bg-[#00C875] text-[#0D1117] text-xs font-bold px-2 py-0.5 rounded-full">PRO</span>
+              )}
+              {charityNumber && (
+                <Link
+                  href={`/charity/${charityNumber}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-1 text-[10px] text-white/50 hover:text-white/90 transition-colors"
+                >
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                    <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M6 3.5C6 3.5 4.5 4.5 4.5 6S6 8.5 6 8.5M6 3.5C6 3.5 7.5 4.5 7.5 6S6 8.5 6 8.5M3 5.5h6M3 6.5h6" stroke="currentColor" strokeWidth="1"/>
+                  </svg>
+                  My profile
+                </Link>
+              )}
+            </div>
           </div>
         )}
 

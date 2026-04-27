@@ -143,7 +143,7 @@ export default async function AlertsPage() {
   )
 
   return (
-    <AppShell orgName={org.name} plan={plan}>
+    <AppShell orgName={org.name} plan={plan} charityNumber={org.charity_number}>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-10">
 
         {/* Header */}

@@ -19,7 +19,7 @@ export default async function SettingsPage() {
   if (!org) redirect('/onboarding')
 
   return (
-    <AppShell orgName={org.name} plan={profile?.plan}>
+    <AppShell orgName={org.name} plan={profile?.plan} charityNumber={org.charity_number}>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
         <div className="mb-8">
           <h1 className="font-display text-2xl font-bold text-[#0D1117]">Settings</h1>

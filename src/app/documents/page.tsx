@@ -26,7 +26,7 @@ export default async function DocumentsPage() {
 
   // Fetch org name
   const { data: org } = orgId
-    ? await supabase.from('organisations').select('name').eq('id', orgId).single()
+    ? await supabase.from('organisations').select('name, charity_number').eq('id', orgId).single()
     : { data: null }
 
   // Fetch documents
@@ -39,7 +39,7 @@ export default async function DocumentsPage() {
     : { data: [] }
 
   return (
-    <AppShell orgName={org?.name} plan={plan}>
+    <AppShell orgName={org?.name} plan={plan} charityNumber={org?.charity_number}>
       <DocumentVault
         initial={documents ?? []}
         plan={plan}

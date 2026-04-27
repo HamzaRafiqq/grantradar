@@ -38,7 +38,7 @@ export default async function WeeklyPlanPage() {
 
   const { data: org } = await supabase
     .from('organisations')
-    .select('id, name')
+    .select('id, name, charity_number')
     .eq('user_id', user.id)
     .single()
 
@@ -69,7 +69,7 @@ export default async function WeeklyPlanPage() {
   }
 
   return (
-    <AppShell orgName={org.name} plan={profile?.plan}>
+    <AppShell orgName={org.name} plan={profile?.plan} charityNumber={org.charity_number}>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <WeeklyPlanClient
           plan={typedPlan?.plan ?? null}

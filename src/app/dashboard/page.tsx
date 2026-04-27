@@ -112,7 +112,7 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <AppShell orgName={org.name} plan={profile?.plan}>
+    <AppShell orgName={org.name} plan={profile?.plan} charityNumber={org.charity_number}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6 sm:mb-8">
