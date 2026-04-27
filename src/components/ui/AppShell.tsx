@@ -124,19 +124,6 @@ export default function AppShell({ children, orgName, plan, charityNumber }: {
               {plan === 'pro' && (
                 <span className="bg-[#00C875] text-[#0D1117] text-xs font-bold px-2 py-0.5 rounded-full">PRO</span>
               )}
-              {charityNumber && (
-                <Link
-                  href={`/charity/${charityNumber}`}
-                  target="_blank"
-                  className="inline-flex items-center gap-1 text-[10px] text-white/50 hover:text-white/90 transition-colors"
-                >
-                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                    <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5"/>
-                    <path d="M6 3.5C6 3.5 4.5 4.5 4.5 6S6 8.5 6 8.5M6 3.5C6 3.5 7.5 4.5 7.5 6S6 8.5 6 8.5M3 5.5h6M3 6.5h6" stroke="currentColor" strokeWidth="1"/>
-                  </svg>
-                  My profile
-                </Link>
-              )}
             </div>
           </div>
         )}
@@ -160,6 +147,20 @@ export default function AppShell({ children, orgName, plan, charityNumber }: {
               </Link>
             )
           })}
+          {charityNumber && (
+            <Link
+              href={`/charity/${charityNumber}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-white/60 hover:text-white hover:bg-white/10"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.75"/>
+                <path d="M9 5C9 5 7 6.5 7 9s2 4 2 4M9 5c0 0 2 1.5 2 4s-2 4-2 4M5 7.5h8M5 10.5h8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+              My Profile
+            </Link>
+          )}
         </nav>
 
         {/* Sign out */}
