@@ -27,9 +27,33 @@ export interface FinancialIntelligence {
   grantContext: string          // populated when grantAmount provided
 }
 
-function formatYear(endDate: string): string {
-  // endDate like "2024-03-31" → "2023-24"
-  const d = new Date(endDate)
+function parseEndDate(raw: string | null | undefined): Date | null {
+  if (!raw) return null
+
+  // ISO formats: "2024-03-31", "2024-03-31T00:00:00", "2024-03-31T00:00:00Z"
+  let d = new Date(raw)
+  if (!isNaN(d.getTime())) return d
+
+  // UK format: "31/03/2024"
+  const ukMatch = String(raw).match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (ukMatch) {
+    d = new Date(parseInt(ukMatch[3]), parseInt(ukMatch[2]) - 1, parseInt(ukMatch[1]))
+    if (!isNaN(d.getTime())) return d
+  }
+
+  // Plain year: "2024"
+  const yrMatch = String(raw).match(/^(\d{4})$/)
+  if (yrMatch) {
+    return new Date(parseInt(yrMatch[1]), 11, 31) // assume Dec 31
+  }
+
+  return null
+}
+
+function formatYear(endDate: string | null | undefined, fallbackYear?: number): string {
+  const d = parseEndDate(endDate)
+  if (!d && fallbackYear) return `${fallbackYear - 1}-${String(fallbackYear).slice(2)}`
+  if (!d) return 'Unknown'
   const endYr = d.getFullYear()
   const endMo = d.getMonth() + 1
   // if period ends before July, financial year is prev-current
@@ -167,21 +191,44 @@ export async function POST(req: NextRequest) {
     let rawFinancials: any[] = []
     if (finRes.ok) {
       const finData = await finRes.json()
-      rawFinancials = Array.isArray(finData) ? finData : (finData?.data ?? [])
+      rawFinancials = Array.isArray(finData) ? finData : (finData?.data ?? finData?.financials ?? finData?.charity_annual_return_history ?? [])
+      // Log first record keys to help diagnose field name mismatches
+      if (rawFinancials.length > 0) {
+        console.log('[financials] first record keys:', Object.keys(rawFinancials[0]))
+        console.log('[financials] first record sample:', JSON.stringify(rawFinancials[0]).slice(0, 300))
+      }
     }
 
     // ── Parse yearly financials ──────────────────────────────────────────────
     const years: YearlyFinancial[] = rawFinancials
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((r: any) => {
-        const endDate = r.fin_period_end_date ?? r.period_end ?? r.financialPeriodEndDate ?? ''
-        const income  = Number(r.income ?? r.total_income ?? 0)
-        const expend  = Number(r.expenditure ?? r.total_expenditure ?? 0)
+      .map((r: any, idx: number) => {
+        // Try every known field name for the period end date
+        const endDateRaw =
+          r.fin_period_end_date ??
+          r.period_end ??
+          r.financialPeriodEndDate ??
+          r.fin_end_date ??
+          r.end_date ??
+          r.periodEndDate ??
+          r.FinancialPeriodEndDate ??
+          r.financial_period_end_date ??
+          r.date_of_extract ??
+          r.report_date ??
+          r.fin_period_start_date ??  // fallback to start date if no end date
+          r.start_date ??
+          null
+
+        const income  = Number(r.income ?? r.total_income ?? r.totalIncome ?? r.Income ?? 0)
+        const expend  = Number(r.expenditure ?? r.total_expenditure ?? r.totalExpenditure ?? r.Expenditure ?? 0)
         const surplus = income - expend
-        const d       = new Date(endDate)
+
+        const parsed  = parseEndDate(endDateRaw)
+        const endYear = parsed ? parsed.getFullYear() : (new Date().getFullYear() - idx)
+
         return {
-          year: formatYear(endDate),
-          endYear: d.getFullYear(),
+          year: formatYear(endDateRaw, endYear),
+          endYear,
           income,
           expenditure: expend,
           surplus,
