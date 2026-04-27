@@ -58,12 +58,15 @@ export default function GrantCard({
   plan = 'free',
   orgCountry,
 }: Props) {
-  const [status, setStatus]         = useState<MatchStatus>(match.status as MatchStatus)
-  const [expanded, setExpanded]     = useState(false)
-  const [drafting, setDrafting]     = useState(false)
-  const [draft, setDraft]           = useState<string | null>(null)
-  const [copied, setCopied]         = useState(false)
-  const [modalOpen, setModalOpen]   = useState(false)
+  const [status, setStatus]             = useState<MatchStatus>(match.status as MatchStatus)
+  const [expanded, setExpanded]         = useState(false)
+  const [matchExpanded, setMatchExp]    = useState(false)
+  const [watchExpanded, setWatchExp]    = useState(false)
+  const [descExpanded, setDescExp]      = useState(false)
+  const [drafting, setDrafting]         = useState(false)
+  const [draft, setDraft]               = useState<string | null>(null)
+  const [copied, setCopied]             = useState(false)
+  const [modalOpen, setModalOpen]       = useState(false)
   const [modalTrigger, setModalTrigger] = useState<'funder_name' | 'deadline' | 'apply_link'>('funder_name')
 
   const supabase     = createClient()
@@ -266,7 +269,14 @@ export default function GrantCard({
 
           {/* Description */}
           {displayDesc && (
-            <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{displayDesc}</p>
+            <div>
+              <p className={`text-xs text-gray-500 leading-relaxed ${descExpanded ? '' : 'line-clamp-2'}`}>{displayDesc}</p>
+              {displayDesc.length > 120 && (
+                <button onClick={() => setDescExp(v => !v)} className="text-[10px] text-[#0F4C35] font-medium mt-0.5 hover:underline">
+                  {descExpanded ? 'See less' : 'See more'}
+                </button>
+              )}
+            </div>
           )}
 
           {/* Sector tags */}
@@ -284,14 +294,24 @@ export default function GrantCard({
           {/* Why you match */}
           <div className="bg-[#F4F6F5] rounded-xl p-3">
             <p className="text-xs font-semibold text-[#0F4C35] mb-1">Why you match</p>
-            <p className="text-xs text-gray-600 leading-relaxed">{match.match_reason}</p>
+            <p className={`text-xs text-gray-600 leading-relaxed ${matchExpanded ? '' : 'line-clamp-2'}`}>{match.match_reason}</p>
+            {match.match_reason && match.match_reason.length > 100 && (
+              <button onClick={() => setMatchExp(v => !v)} className="text-[10px] text-[#0F4C35] font-medium mt-1 hover:underline">
+                {matchExpanded ? 'See less' : 'See more'}
+              </button>
+            )}
           </div>
 
           {/* Watch out */}
           {match.watch_out && (
             <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
               <p className="text-xs font-semibold text-amber-700 mb-1">Watch out</p>
-              <p className="text-xs text-amber-600 leading-relaxed">{match.watch_out}</p>
+              <p className={`text-xs text-amber-600 leading-relaxed ${watchExpanded ? '' : 'line-clamp-2'}`}>{match.watch_out}</p>
+              {match.watch_out.length > 100 && (
+                <button onClick={() => setWatchExp(v => !v)} className="text-[10px] text-amber-700 font-medium mt-1 hover:underline">
+                  {watchExpanded ? 'See less' : 'See more'}
+                </button>
+              )}
             </div>
           )}
 
