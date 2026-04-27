@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { getLocale } from '@/lib/locale'
 import FinancialHistory from '@/components/charity/FinancialHistory'
+import CharityFinancialIntelligence from '@/components/ui/CharityFinancialIntelligence'
 import type { Profile, Organisation, Sector, AnnualIncome } from '@/types'
 
 const sectors = [
@@ -74,6 +75,7 @@ export default function SettingsClient({ profile, org }: Props) {
   const [regionalSaved, setRegionalSaved] = useState(false)
 
   const [cancelLoading, setCancelLoading] = useState(false)
+  const [useApiFinancials, setUseApiFinancials] = useState(false)
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault()
@@ -241,7 +243,19 @@ export default function SettingsClient({ profile, org }: Props) {
               View public profile →
             </Link>
           </div>
-          <FinancialHistory registrationNumber={orgForm.charity_number} />
+          {useApiFinancials ? (
+            /* Fallback: charity not in Supabase yet — use live CC API */
+            <CharityFinancialIntelligence
+              charityNumber={orgForm.charity_number}
+              charityName={orgForm.name}
+            />
+          ) : (
+            /* Primary: rich tabbed view from Supabase CC data */
+            <FinancialHistory
+              registrationNumber={orgForm.charity_number}
+              onNotFound={() => setUseApiFinancials(true)}
+            />
+          )}
         </div>
       )}
 

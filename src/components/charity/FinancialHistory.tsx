@@ -371,9 +371,11 @@ interface Props {
   registrationNumber: string
   /** Pre-loaded data (optional — avoids extra API call in server-rendered contexts) */
   initialData?: CCCharityProfile
+  /** Called when charity is not found in Supabase so caller can fall back to live CC API */
+  onNotFound?: () => void
 }
 
-export default function FinancialHistory({ registrationNumber, initialData }: Props) {
+export default function FinancialHistory({ registrationNumber, initialData, onNotFound }: Props) {
   const [data,    setData]    = useState<CCCharityProfile | null>(initialData ?? null)
   const [loading, setLoading] = useState(!initialData)
   const [error,   setError]   = useState('')
@@ -387,7 +389,12 @@ export default function FinancialHistory({ registrationNumber, initialData }: Pr
         const res = await fetch(`/api/charity-commission/${registrationNumber}`)
         if (!res.ok) {
           const e = await res.json().catch(() => ({}))
-          throw new Error(e.error ?? `Error ${res.status}`)
+          const errMsg = e.error ?? `Error ${res.status}`
+          if (errMsg === 'charity_not_found' && onNotFound) {
+            onNotFound()
+            return
+          }
+          throw new Error(errMsg)
         }
         setData(await res.json())
       } catch (e) {
@@ -397,7 +404,8 @@ export default function FinancialHistory({ registrationNumber, initialData }: Pr
       }
     }
     load()
-  }, [registrationNumber, initialData])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registrationNumber])
 
   if (loading) {
     return (
