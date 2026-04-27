@@ -45,7 +45,7 @@ export default async function GrantDetailPage({ params }: { params: Promise<{ id
         <div className="card mb-5">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <h1 className="font-display text-2xl font-bold text-[#0D1117]">
+              <h1 className="font-display text-xl sm:text-2xl font-bold text-[#0D1117]">
                 {isPaid ? grant.name : (grant.public_title ?? `${grant.funder_type ?? 'UK'} Grant Opportunity`)}
               </h1>
               <p className="text-gray-400 text-sm mt-1">

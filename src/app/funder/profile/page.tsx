@@ -14,8 +14,8 @@ export default async function FunderProfilePage() {
 
   return (
     <FunderShell orgName={profile.org_name}>
-      <div className="p-6 lg:p-8 max-w-2xl mx-auto">
-        <h1 className="font-display font-bold text-[#0D1117] text-2xl mb-6">Funder Profile</h1>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto">
+        <h1 className="font-display font-bold text-[#0D1117] text-xl sm:text-2xl mb-6">Funder Profile</h1>
         <FunderProfileForm profile={profile} />
       </div>
     </FunderShell>

@@ -130,7 +130,7 @@ function DroppableColumn({ col, children, count, value }: {
   return (
     <div
       ref={setNodeRef}
-      className={`flex-shrink-0 w-[240px] sm:w-60 rounded-[14px] border ${col.border} ${col.bg} p-3 transition-all ${
+      className={`flex-shrink-0 w-[220px] sm:w-60 rounded-[14px] border snap-start ${col.border} ${col.bg} p-3 transition-all ${
         isOver ? 'ring-2 ring-[#0F4C35] shadow-lg scale-[1.01]' : ''
       }`}
     >
@@ -276,24 +276,32 @@ export default function PipelineBoard({ matches: initial, plan }: Props) {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {[
           { label: 'Tracked',      value: totalTracked.toString(),              icon: '📋' },
           { label: 'Total value',  value: `£${totalValue.toLocaleString()}`,    icon: '💷' },
           { label: 'Won',          value: `£${wonValue.toLocaleString()}`,      icon: '🏆', green: wonValue > 0 },
           { label: 'Success rate', value: `${successRate}%`,                    icon: '📊' },
         ].map(stat => (
-          <div key={stat.label} className="card">
-            <div className="text-2xl mb-1">{stat.icon}</div>
-            <div className={`font-bold text-xl ${stat.green ? 'text-green-600' : 'text-[#0D1117]'}`}>{stat.value}</div>
-            <div className="text-gray-400 text-xs mt-0.5">{stat.label}</div>
+          <div key={stat.label} className="card p-4">
+            <div className="text-xl sm:text-2xl mb-1">{stat.icon}</div>
+            <div className={`font-bold text-lg sm:text-xl truncate ${stat.green ? 'text-green-600' : 'text-[#0D1117]'}`}>{stat.value}</div>
+            <div className="text-gray-400 text-[10px] sm:text-xs mt-0.5">{stat.label}</div>
           </div>
         ))}
       </div>
 
+      {/* Mobile scroll hint */}
+      <div className="md:hidden flex items-center gap-1.5 text-xs text-gray-400 mb-3">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
+          <path d="M3 8h10M8 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        Swipe to see all columns
+      </div>
+
       {/* Board */}
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory">
           {COLUMNS.map(col => {
             const cards    = colMatches(col.id)
             const colValue = cards.reduce((s, m) => s + ((m.amount_requested ?? m.grant.max_award) || 0), 0)

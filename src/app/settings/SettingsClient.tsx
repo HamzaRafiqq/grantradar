@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { getLocale } from '@/lib/locale'
+import CharityFinancialIntelligence from '@/components/ui/CharityFinancialIntelligence'
 import type { Profile, Organisation, Sector, AnnualIncome } from '@/types'
 
 const sectors = [
@@ -220,6 +221,17 @@ export default function SettingsClient({ profile, org }: Props) {
           </button>
         </form>
       </div>
+
+      {/* Charity Financial Intelligence */}
+      {orgForm.charity_number && (
+        <div>
+          <h2 className="font-display text-lg font-semibold text-[#0D1117] mb-3">Financial health</h2>
+          <CharityFinancialIntelligence
+            charityNumber={orgForm.charity_number}
+            charityName={orgForm.name}
+          />
+        </div>
+      )}
 
       {/* Billing */}
       <div className="card">

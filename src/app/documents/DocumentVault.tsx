@@ -514,54 +514,51 @@ export default function DocumentVault({ initial, plan }: Props) {
       {shareDoc   && <ShareModal  doc={shareDoc}  onClose={() => setShareDoc(null)} />}
       {expiryDoc  && <SetExpiryModal doc={expiryDoc} onClose={() => setExpiryDoc(null)} onSaved={handleSaved} />}
 
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Sidebar */}
-        <aside className="md:w-56 flex-shrink-0 space-y-2">
-          <CompletenessWidget docs={docs} />
-
-          <div className="bg-white rounded-[14px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1 mb-2">Filter by category</p>
-            {(['All', ...CATEGORIES] as const).map(cat => (
-              <button
-                key={cat}
-                onClick={() => setFilter(cat as Category | 'All')}
-                className={`w-full text-left text-sm px-3 py-2 rounded-xl transition-colors ${
-                  filter === cat
-                    ? 'bg-[#0F4C35] text-white font-medium'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                {cat}
-                {cat !== 'All' && (
-                  <span className="ml-1.5 text-xs opacity-60">
-                    ({docs.filter(d => d.category === cat).length})
-                  </span>
-                )}
-              </button>
-            ))}
+      <div className="px-4 sm:px-6 py-6 sm:py-8">
+        {/* Page header */}
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <div>
+            <h1 className="font-display text-xl sm:text-2xl font-bold text-[#0D1117]">Document Vault</h1>
+            <p className="text-xs sm:text-sm text-gray-400 mt-0.5">{docs.length} document{docs.length !== 1 ? 's' : ''} stored</p>
           </div>
-        </aside>
+          <button
+            onClick={() => setUpload(true)}
+            className="flex items-center gap-1.5 sm:gap-2 bg-[#0F4C35] text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl hover:bg-[#0c3d2a] transition-colors"
+          >
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+              <path d="M7 1v12M1 7h12" stroke="white" strokeWidth="1.75" strokeLinecap="round"/>
+            </svg>
+            Upload
+          </button>
+        </div>
+
+        {/* Completeness bar — compact on mobile */}
+        <CompletenessWidget docs={docs} />
+
+        {/* Category pills — horizontal scroll on mobile, sidebar on desktop */}
+        <div className="flex gap-2 overflow-x-auto pb-1 mb-4 sm:mb-6 -mx-4 px-4 sm:mx-0 sm:px-0" style={{ scrollbarWidth: 'none' }}>
+          {(['All', ...CATEGORIES] as const).map(cat => (
+            <button
+              key={cat}
+              onClick={() => setFilter(cat as Category | 'All')}
+              className={`flex-shrink-0 text-xs sm:text-sm px-3 py-1.5 rounded-full font-medium transition-colors border ${
+                filter === cat
+                  ? 'bg-[#0F4C35] text-white border-[#0F4C35]'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-[#0F4C35] hover:text-[#0F4C35]'
+              }`}
+            >
+              {cat}
+              {cat !== 'All' && (
+                <span className="ml-1 opacity-60">
+                  ({docs.filter(d => d.category === cat).length})
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
 
         {/* Main */}
         <div className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="font-display font-semibold text-[#0D1117]">
-                {filter === 'All' ? 'All documents' : filter}
-                <span className="ml-2 text-gray-400 font-normal text-sm">({visible.length})</span>
-              </h2>
-            </div>
-            <button
-              onClick={() => setUpload(true)}
-              className="flex items-center gap-2 bg-[#0F4C35] text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-[#0c3d2a] transition-colors"
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M7 1v12M1 7h12" stroke="white" strokeWidth="1.75" strokeLinecap="round"/>
-              </svg>
-              Upload
-            </button>
-          </div>
 
           {/* Grid */}
           {visible.length === 0 ? (
@@ -599,3 +596,4 @@ export default function DocumentVault({ initial, plan }: Props) {
     </>
   )
 }
+

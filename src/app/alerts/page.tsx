@@ -66,29 +66,30 @@ function AlertRow({ match, paid }: { match: GrantMatchWithGrant; paid: boolean }
   const displayFunder = paid ? match.grant.funder  : (match.grant.funder_type   ?? 'UK Funder')
 
   return (
-    <div className={`card flex flex-col sm:flex-row sm:items-center gap-4 ${rowBorder}`}>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${badge.cls}`}>{badge.label}</span>
-          <span className="text-xs text-gray-400">Closes {formatDate(match.grant.deadline)}</span>
+    <div className={`card p-4 sm:p-5 flex flex-col gap-3 ${rowBorder}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${badge.cls}`}>{badge.label}</span>
+            <span className="text-xs text-gray-400">Closes {formatDate(match.grant.deadline)}</span>
+          </div>
+          <h3 className="font-display font-semibold text-[#0D1117] text-sm leading-snug">{displayName}</h3>
+          <p className="text-gray-400 text-xs mt-0.5">{displayFunder}</p>
+          <p className="text-[#0F4C35] text-sm font-semibold mt-1">
+            {!match.grant.max_award || match.grant.max_award === 0
+              ? 'Amount TBC'
+              : match.grant.min_award > 0
+              ? `${formatCurrency(match.grant.min_award)} – ${formatCurrency(match.grant.max_award)}`
+              : `Up to ${formatCurrency(match.grant.max_award)}`}
+          </p>
         </div>
-        <h3 className="font-display font-semibold text-[#0D1117] text-sm">{displayName}</h3>
-        <p className="text-gray-400 text-xs mt-0.5">{displayFunder}</p>
-        <p className="text-[#0F4C35] text-sm font-semibold mt-1">
-          {!match.grant.max_award || match.grant.max_award === 0
-            ? 'Amount TBC'
-            : match.grant.min_award > 0
-            ? `${formatCurrency(match.grant.min_award)} – ${formatCurrency(match.grant.max_award)}`
-            : `Up to ${formatCurrency(match.grant.max_award)}`}
-        </p>
       </div>
-      <div className="flex gap-2 flex-shrink-0">
-        <Link href={`/grants/${match.grant.id}`} className="btn-secondary text-sm py-2 px-4">
+      <div className="flex gap-2">
+        <Link href={`/grants/${match.grant.id}`} className="btn-secondary text-xs sm:text-sm py-2 px-3 sm:px-4 flex-1 sm:flex-none text-center">
           View Grant
         </Link>
-        {/* Apply link — paid users only */}
         {paid && match.grant.application_url && (
-          <a href={match.grant.application_url} target="_blank" rel="noopener noreferrer" className="btn-primary text-sm py-2 px-4">
+          <a href={match.grant.application_url} target="_blank" rel="noopener noreferrer" className="btn-primary text-xs sm:text-sm py-2 px-3 sm:px-4 flex-1 sm:flex-none text-center">
             Apply →
           </a>
         )}
@@ -153,19 +154,19 @@ export default async function AlertsPage() {
 
         {/* Free plan banner */}
         {!paid && (
-          <div className="bg-[#0F4C35] text-white rounded-[12px] p-5 flex items-center justify-between gap-4">
+          <div className="bg-[#0F4C35] text-white rounded-[12px] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div>
-              <p className="font-semibold mb-0.5">You're on the Free plan</p>
+              <p className="font-semibold mb-0.5">You&apos;re on the Free plan</p>
               <p className="text-white/70 text-sm">
                 Showing {Math.min(FREE_LIMIT, allMatches.length)} of {allMatches.length} matched grants.
-                Upgrade to unlock all grants, full funder names, apply links and email alerts.
+                Upgrade to unlock all grants, full funder names and email alerts.
               </p>
             </div>
             <Link
               href="/pricing"
-              className="bg-[#00C875] text-[#0D1117] text-sm font-semibold px-4 py-2 rounded-xl hover:bg-[#009E5D] hover:text-white transition-colors flex-shrink-0"
+              className="bg-[#00C875] text-[#0D1117] text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-[#009E5D] hover:text-white transition-colors flex-shrink-0 text-center"
             >
-              Upgrade
+              Upgrade →
             </Link>
           </div>
         )}

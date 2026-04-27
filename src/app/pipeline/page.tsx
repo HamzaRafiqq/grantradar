@@ -34,11 +34,11 @@ export default async function PipelinePage() {
 
   return (
     <AppShell orgName={org.name} plan={plan}>
-      <div className="px-4 sm:px-6 py-8">
-        <div className="mb-8">
-          <h1 className="font-display text-2xl font-bold text-[#0D1117]">Application Pipeline</h1>
-          <p className="text-gray-400 text-sm mt-1">
-            Drag cards between columns to track your progress · Click any card to edit notes and details
+      <div className="px-4 sm:px-6 py-6 sm:py-8">
+        <div className="mb-5 sm:mb-8">
+          <h1 className="font-display text-xl sm:text-2xl font-bold text-[#0D1117]">Application Pipeline</h1>
+          <p className="text-gray-400 text-xs sm:text-sm mt-1">
+            Drag cards between stages · Tap any card to edit
           </p>
         </div>
         <PipelineBoard matches={typedMatches} plan={plan} />

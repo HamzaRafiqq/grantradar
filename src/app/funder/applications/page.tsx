@@ -81,10 +81,10 @@ export default async function FunderApplicationsPage({
 
   return (
     <FunderShell orgName={funder.org_name}>
-      <div className="p-6 lg:p-8 max-w-6xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="font-display font-bold text-[#0D1117] text-2xl">Applications</h1>
+            <h1 className="font-display font-bold text-[#0D1117] text-xl sm:text-2xl">Applications</h1>
             <p className="text-gray-500 text-sm mt-1">{appList.length} application{appList.length !== 1 ? 's' : ''}</p>
           </div>
         </div>

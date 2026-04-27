@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "import:360giving": "npx tsx --tsconfig tsconfig.scripts.json scripts/import-360giving.ts"
+    "import:360giving": "npx tsx --tsconfig tsconfig.scripts.json scripts/import-360giving.ts",
+    "import:cc": "npx tsx --tsconfig tsconfig.scripts.json scripts/import-charity-commission.ts",
+    "import:cc:core": "npx tsx --tsconfig tsconfig.scripts.json scripts/import-charity-commission.ts --file=core",
+    "import:cc:financial": "npx tsx --tsconfig tsconfig.scripts.json scripts/import-charity-commission.ts --file=financial",
+    "import:cc:dry": "npx tsx --tsconfig tsconfig.scripts.json scripts/import-charity-commission.ts --dry-run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
@@ -16,17 +20,21 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "^2.45.0",
+    "adm-zip": "^0.5.17",
     "next": "^16.2.4",
     "react": "^18",
     "react-dom": "^18",
+    "recharts": "^3.8.1",
     "resend": "^3.4.0",
     "stripe": "^16.2.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/recharts": "^1.8.29",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import CharityIntelligence from '@/components/funder/CharityIntelligence'
 
 const STATUS_OPTIONS = [
   { value: 'received',     label: '📥 Received',      color: 'text-blue-600'   },
@@ -264,6 +265,16 @@ export default function ApplicationReview({ application, answers, trustHistory }
 
             {!trust && <p className="text-xs text-gray-400 mt-2">No Trust Score recorded yet.</p>}
           </div>
+
+          {/* Charity Intelligence (full risk assessment + financial data) */}
+          {org.charity_number && (
+            <CharityIntelligence
+              registrationNumber={org.charity_number}
+              charityName={org.name}
+              grantAmount={application.amount_requested ?? undefined}
+              grantTitle={application.grant.title}
+            />
+          )}
         </div>
 
         {/* Right: Answers + Notes */}

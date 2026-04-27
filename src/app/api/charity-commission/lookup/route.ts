@@ -32,6 +32,9 @@ function buildActivities(wwwArr: WhoWhatWhere[]): string {
   return parts.join(' ')
 }
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { createClient } = require('@supabase/supabase-js')
+
 export async function POST(req: NextRequest) {
   try {
     const { registrationNumber } = await req.json()
@@ -49,6 +52,77 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // ── Step 1: Check local CC database first (fast, no API key needed) ───────
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+          process.env.SUPABASE_SERVICE_ROLE_KEY
+        )
+
+        const { data: core } = await supabase
+          .from('cc_charity_core')
+          .select('*')
+          .eq('registration_number', num)
+          .single()
+
+        if (core) {
+          // Fetch supporting data
+          const [
+            { data: finRows },
+            { data: geoRows },
+            { data: classRows },
+            { data: trusteeRows },
+          ] = await Promise.all([
+            supabase.from('cc_financial_history').select('income_total, period_end_date').eq('registration_number', num).order('period_end_date', { ascending: false }).limit(1),
+            supabase.from('cc_geographic_area').select('geographic_area').eq('registration_number', num),
+            supabase.from('cc_classification').select('classification_desc, classification_type').eq('registration_number', num).eq('classification_type', 'What'),
+            supabase.from('cc_trustee').select('trustee_name').eq('registration_number', num).limit(20),
+          ])
+
+          const latestFin   = finRows?.[0]
+          const income      = Number(latestFin?.income_total ?? 0)
+          const geoAreas    = (geoRows ?? []).map((g: { geographic_area: string }) => g.geographic_area).join(', ')
+          const causes      = (classRows ?? []).map((c: { classification_desc: string }) => c.classification_desc).filter(Boolean).join(', ')
+          const trustees    = (trusteeRows ?? []).map((t: { trustee_name: string }) => t.trustee_name)
+          const yearsOperating = core.date_of_registration
+            ? Math.floor((Date.now() - new Date(core.date_of_registration).getTime()) / (365.25 * 24 * 3600 * 1000))
+            : null
+
+          const activities = core.charity_activities || core.charitable_objects || ''
+          const city = core.contact_address3 || core.contact_address2 || core.contact_address1 || ''
+          const location = [city, core.contact_postcode].filter(Boolean).join(', ')
+
+          return NextResponse.json({
+            source: 'local_db',
+            name: core.charity_name.trim(),
+            registrationNumber: num,
+            activities,
+            annualIncome: incomeToBracket(income),
+            incomeRaw: income,
+            incomeDisplay: formatIncome(income),
+            incomeYear: latestFin?.period_end_date ? new Date(latestFin.period_end_date).getFullYear() : null,
+            location,
+            geographicSpread: geoAreas,
+            website: (core.contact_web ?? '').trim(),
+            email: (core.contact_email ?? '').trim(),
+            phone: (core.contact_phone ?? '').trim(),
+            causes,
+            giftAid: core.charity_gift_aid,
+            yearsOperating,
+            registeredSince: core.date_of_registration,
+            trusteeCount: trustees.length,
+            trustees: trustees.slice(0, 10),
+            registrationStatus: core.registration_status,
+          })
+        }
+      } catch (dbErr) {
+        // DB lookup failed — fall through to live CC API
+        console.warn('Local DB lookup failed, trying CC API:', dbErr)
+      }
+    }
+
+    // ── Step 2: Fall back to live CC API ─────────────────────────────────────
     const apiKey = process.env.CHARITY_COMMISSION_API_KEY
     if (!apiKey) {
       console.warn('CHARITY_COMMISSION_API_KEY is not set')
@@ -101,6 +175,7 @@ export async function POST(req: NextRequest) {
     const activities = buildActivities(raw.who_what_where ?? [])
 
     return NextResponse.json({
+      source: 'live_api',
       name: (raw.charity_name ?? '').trim(),
       registrationNumber: String(raw.reg_charity_number ?? num),
       activities,

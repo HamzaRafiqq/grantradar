@@ -255,29 +255,29 @@ export default function DashboardGrants({ matches, plan, orgCountry }: Props) {
       </div>
 
       {/* Result count + closed toggle */}
-      <div className="flex items-center justify-between mb-5">
-        <p className="text-sm text-gray-500">
-          Showing <span className="font-semibold text-[#0D1117]">{filtered.length}</span> of{' '}
-          <span className="font-semibold text-[#0D1117]">{base.length}</span> grant{base.length !== 1 ? 's' : ''}
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4 sm:mb-5">
+        <p className="text-xs sm:text-sm text-gray-500">
+          <span className="font-semibold text-[#0D1117]">{filtered.length}</span>
+          {' '}of{' '}
+          <span className="font-semibold text-[#0D1117]">{base.length}</span> grants
           {isFiltered && (
             <button onClick={clearFilters} className="ml-2 text-[#0F4C35] hover:underline font-medium">
-              Clear all filters
+              Clear filters
             </button>
           )}
-          {!showClosed && closedMatches.length > 0 && (
-            <span className="text-gray-400">
-              {' '}·{' '}
-              <button onClick={() => setShowClosed(true)} className="text-[#0F4C35] hover:underline font-medium">
-                {closedMatches.length} closed hidden — show
-              </button>
-            </span>
-          )}
         </p>
-        {showClosed && closedMatches.length > 0 && (
-          <button onClick={() => setShowClosed(false)} className="text-xs text-gray-400 hover:text-gray-600 underline">
-            Hide closed
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {!showClosed && closedMatches.length > 0 && (
+            <button onClick={() => setShowClosed(true)} className="text-xs text-[#0F4C35] hover:underline font-medium">
+              +{closedMatches.length} closed
+            </button>
+          )}
+          {showClosed && closedMatches.length > 0 && (
+            <button onClick={() => setShowClosed(false)} className="text-xs text-gray-400 hover:text-gray-600 underline">
+              Hide closed
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Grant grid */}
@@ -289,7 +289,7 @@ export default function DashboardGrants({ matches, plan, orgCountry }: Props) {
           <button onClick={clearFilters} className="btn-primary text-sm py-2">Clear filters</button>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
           {filtered.map((match, i) => {
             const isLocked = plan === 'free' && i >= 3
             const lockedCount = plan === 'free' ? Math.max(0, filtered.length - 3) : 0

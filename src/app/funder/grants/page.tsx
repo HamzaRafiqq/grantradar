@@ -42,15 +42,15 @@ export default async function FunderGrantsPage() {
 
   return (
     <FunderShell orgName={funder.org_name}>
-      <div className="p-6 lg:p-8 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
-            <h1 className="font-display font-bold text-[#0D1117] text-2xl">My Grants</h1>
+            <h1 className="font-display font-bold text-[#0D1117] text-xl sm:text-2xl">My Grants</h1>
             <p className="text-gray-500 text-sm mt-1">{grantList.length} grant{grantList.length !== 1 ? 's' : ''} posted</p>
           </div>
           <Link
             href="/funder/grants/create"
-            className="flex items-center gap-2 bg-[#0F2B4C] text-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:bg-[#0a1f38] transition-colors"
+            className="flex items-center gap-2 bg-[#0F2B4C] text-white font-semibold text-sm px-4 sm:px-5 py-2.5 rounded-xl hover:bg-[#0a1f38] transition-colors self-start sm:self-auto"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M7 1.5v11M1.5 7h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>

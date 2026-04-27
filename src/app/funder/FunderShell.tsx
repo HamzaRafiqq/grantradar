@@ -129,7 +129,7 @@ export default function FunderShell({
       </aside>
 
       {/* Mobile bottom nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0F2B4C] z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0F2B4C] z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex">
           {NAV.map(item => {
             const active = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -137,12 +137,12 @@ export default function FunderShell({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium transition-colors ${
+                className={`flex-1 flex flex-col items-center gap-0.5 py-3 transition-colors min-w-0 ${
                   active ? 'text-white' : 'text-white/50'
                 }`}
               >
                 {item.icon}
-                {item.label}
+                <span className="text-[9px] font-medium leading-none truncate">{item.label}</span>
               </Link>
             )
           })}
@@ -150,7 +150,8 @@ export default function FunderShell({
       </div>
 
       {/* Main */}
-      <main className="flex-1 md:ml-56 pb-20 md:pb-0">
+      <main className="flex-1 md:ml-56" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 64px)' }}>
+        <style>{`@media (min-width: 768px) { main { padding-bottom: 0 !important; } }`}</style>
         {children}
       </main>
     </div>

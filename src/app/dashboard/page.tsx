@@ -113,15 +113,15 @@ export default async function DashboardPage() {
 
   return (
     <AppShell orgName={org.name} plan={profile?.plan}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6 sm:mb-8">
           <div>
             <p className="text-gray-400 text-sm mb-0.5">{greeting} {locale.flag}</p>
-            <h1 className="font-display text-2xl font-bold text-[#0D1117]">
+            <h1 className="font-display text-xl sm:text-2xl font-bold text-[#0D1117]">
               {org.name.charAt(0) + org.name.slice(1).toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}
             </h1>
-            <p className="text-gray-400 text-sm mt-0.5">
+            <p className="text-gray-400 text-xs sm:text-sm mt-0.5">
               {locale.orgTerm.charAt(0).toUpperCase() + locale.orgTerm.slice(1)} · {org.country ?? 'United Kingdom'} · Your matched grants
             </p>
           </div>
@@ -129,22 +129,22 @@ export default async function DashboardPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           {stats.map((stat) => (
-            <div key={stat.label} className={`bg-white rounded-[12px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-5 border-l-4 ${stat.warn ? 'border-orange-400' : stat.highlight ? 'border-[#00C875]' : 'border-transparent'}`}>
-              <div className="text-xl mb-2">{stat.icon}</div>
-              <div className={`font-bold text-3xl leading-none ${stat.warn ? 'text-orange-500' : stat.highlight ? 'text-[#0F4C35]' : 'text-[#0D1117]'}`}>
+            <div key={stat.label} className={`bg-white rounded-[12px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-4 sm:p-5 border-l-4 ${stat.warn ? 'border-orange-400' : stat.highlight ? 'border-[#00C875]' : 'border-transparent'}`}>
+              <div className="text-lg sm:text-xl mb-1.5 sm:mb-2">{stat.icon}</div>
+              <div className={`font-bold text-xl sm:text-3xl leading-none truncate ${stat.warn ? 'text-orange-500' : stat.highlight ? 'text-[#0F4C35]' : 'text-[#0D1117]'}`}>
                 {stat.value}
               </div>
-              <div className="text-gray-400 text-xs mt-1.5 font-medium">{stat.label}</div>
+              <div className="text-gray-400 text-[10px] sm:text-xs mt-1 sm:mt-1.5 font-medium leading-tight">{stat.label}</div>
             </div>
           ))}
         </div>
 
         {/* Trust Score + Grant cards row */}
-        <div className="flex flex-col xl:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Trust Score widget */}
-          <div className="xl:w-72 flex-shrink-0">
+          <div className="lg:w-72 flex-shrink-0">
             <TrustScoreWidget initial={trustData} />
           </div>
 

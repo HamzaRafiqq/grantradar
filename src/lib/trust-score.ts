@@ -75,40 +75,124 @@ export async function calculateTrustScore(
     applicationQuality: 0,
   }
 
+  // ── CC DATA (enriches governance + financial if available) ───────────────────
+  let ccCore: {
+    date_of_registration?: string
+    charity_gift_aid?: boolean
+  } | null = null
+  let ccFinancials: { income_total?: number; expenditure_total?: number; net_income?: number }[] = []
+  let ccTrusteeCount = 0
+  let ccReturns: { accounts_received?: boolean; accounts_type?: string; date_return_received?: string; date_return_required?: string }[] = []
+  let ccEvents: { event_type?: string }[] = []
+
+  if (org.charity_number?.trim()) {
+    const num = org.charity_number.trim().replace(/\D/g, '')
+    const [
+      { data: coreRow },
+      { data: finRows },
+      { data: trusteeRows },
+      { data: returnRows },
+      { data: eventRows },
+    ] = await Promise.all([
+      supabase.from('cc_charity_core').select('date_of_registration, charity_gift_aid').eq('registration_number', num).maybeSingle(),
+      supabase.from('cc_financial_history').select('income_total, expenditure_total, net_income').eq('registration_number', num).order('period_end_date', { ascending: false }).limit(10),
+      supabase.from('cc_trustee').select('trustee_name', { count: 'exact' }).eq('registration_number', num).limit(1),
+      supabase.from('cc_annual_return').select('accounts_received, accounts_type, date_return_received, date_return_required').eq('registration_number', num).limit(20),
+      supabase.from('cc_event').select('event_type').eq('registration_number', num),
+    ])
+    ccCore        = coreRow
+    ccFinancials  = (finRows ?? []) as typeof ccFinancials
+    ccTrusteeCount = trusteeRows?.length ?? 0  // approximate from returned rows
+    ccReturns     = (returnRows ?? []) as typeof ccReturns
+    ccEvents      = (eventRows ?? []) as typeof ccEvents
+  }
+
+  const ccYearsOperating = ccCore?.date_of_registration
+    ? Math.floor((Date.now() - new Date(ccCore.date_of_registration).getTime()) / (365.25 * 24 * 3600 * 1000))
+    : null
+
+  const ccFiledOnTime = ccReturns.filter(r =>
+    r.accounts_received && r.date_return_received && r.date_return_required &&
+    new Date(r.date_return_received) <= new Date(r.date_return_required)
+  ).length
+  const ccRequiredReturns = ccReturns.filter(r => r.accounts_received !== null).length
+  const ccAllOnTime = ccRequiredReturns > 0 && ccFiledOnTime === ccRequiredReturns
+  const ccHasAudit  = ccReturns.some(r => r.accounts_type?.toLowerCase().includes('audit'))
+  const ccHasRemovalEvent = ccEvents.some(e => e.event_type?.toLowerCase().includes('remov'))
+
+  const latestCCYear = ccFinancials[0]
+  const ccLatestSurplus  = latestCCYear && Number(latestCCYear.net_income ?? 0) >= 0
+  const cc5yrFinancials  = ccFinancials.slice(0, 5)
+  const ccDeficitYears   = cc5yrFinancials.filter(y => Number(y.net_income ?? 0) < 0).length
+  const ccFirstIncome    = ccFinancials[ccFinancials.length - 1]?.income_total ?? 0
+  const ccLastIncome     = ccFinancials[0]?.income_total ?? 0
+  const cc5yrGrowth      = ccFirstIncome > 0 ? ((Number(ccLastIncome) - Number(ccFirstIncome)) / Number(ccFirstIncome)) * 100 : null
+  const latestExpenditure = Number(latestCCYear?.expenditure_total ?? 0)
+  const latestFunds       = 0 // not fetched here — available in full profile API
+  const ccMonthsReserves  = latestFunds > 0 && latestExpenditure > 0
+    ? latestFunds / (latestExpenditure / 12)
+    : null
+
   // ── GOVERNANCE (max 20) ───────────────────────────────────────────────────
-  if (org.registered_charity)                            scores.governance += 8
-  if (org.charity_number?.trim())                        scores.governance += 4
-  if (org.nonprofit_type &&
-      org.nonprofit_type !== 'Other' &&
-      org.nonprofit_type !== 'Community Group')          scores.governance += 4
-  if (org.location?.trim())                             scores.governance += 4
+  // Base FundsRadar profile signals
+  if (org.registered_charity)           scores.governance += 4
+  if (org.charity_number?.trim())       scores.governance += 2
+  if (org.nonprofit_type && org.nonprofit_type !== 'Other') scores.governance += 2
+  if (org.location?.trim())            scores.governance += 2
+
+  // CC-derived governance signals (max 10 extra → capped at 20 total)
+  if (ccTrusteeCount >= 3)             scores.governance += 2  // proper board size
+  if (ccTrusteeCount >= 6)             scores.governance += 2  // good board size
+  if (ccAllOnTime)                     scores.governance += 4  // all returns on time
+  if (ccHasAudit)                      scores.governance += 3  // statutory audit
+  if (!ccHasRemovalEvent)              scores.governance += 2  // no removal events
+  if (ccYearsOperating !== null && ccYearsOperating >= 5) scores.governance += 3  // 5+ years
+  scores.governance = Math.min(scores.governance, 20)
 
   // ── FINANCIAL (max 20) ────────────────────────────────────────────────────
+  // Base from profile income bracket
   if (org.annual_income) {
-    scores.financial += 5  // base: income is recorded
-    if (org.annual_income === 'under_100k')  scores.financial += 5   // total 10
-    if (org.annual_income === '100k_500k')   scores.financial += 10  // total 15
-    if (org.annual_income === 'over_500k')   scores.financial += 15  // total 20
+    scores.financial += 2  // base: income is recorded
+    if (org.annual_income === 'under_100k')  scores.financial += 2
+    if (org.annual_income === '100k_500k')   scores.financial += 5
+    if (org.annual_income === 'over_500k')   scores.financial += 8
   }
+
+  // CC financial data (max 12 extra → capped at 20)
+  if (ccLatestSurplus)                          scores.financial += 5  // latest year surplus
+  if (cc5yrGrowth !== null && cc5yrGrowth >= 0) scores.financial += 5  // growing
+  if (ccMonthsReserves !== null && ccMonthsReserves >= 3) scores.financial += 5  // 3+ months reserves
+  if (ccDeficitYears <= 1)                      scores.financial += 5  // fewer than 2 deficits in 5yr
   scores.financial = Math.min(scores.financial, 20)
 
   // ── DOCUMENT VAULT (max 20) ───────────────────────────────────────────────
-  // 4 pts per key category present, up to 5 categories = 20 pts
-  if (docCategories.has('Legal'))      scores.documents += 4
-  if (docCategories.has('Financial'))  scores.documents += 4
-  if (docCategories.has('Governance')) scores.documents += 4
-  if (docCategories.has('Policies'))   scores.documents += 4
-  if (docCategories.has('HR'))         scores.documents += 4
+  // FundsRadar vault documents
+  if (docCategories.has('Legal'))      scores.documents += 3
+  if (docCategories.has('Financial'))  scores.documents += 3
+  if (docCategories.has('Governance')) scores.documents += 3
+  if (docCategories.has('Policies'))   scores.documents += 3
+  if (docCategories.has('HR'))         scores.documents += 3
+
+  // CC-derived document signals
+  if (ccReturns.some(r => r.accounts_received === true))  scores.documents += 4  // accounts received by CC
+  if (ccHasAudit)                                          scores.documents += 2  // statutory audit on record
   scores.documents = Math.min(scores.documents, 20)
 
   // ── TRACK RECORD (max 20) ─────────────────────────────────────────────────
   const wonApps     = matches.filter(m => m.status === 'won')
   const activeApps  = matches.filter(m => !['new'].includes(m.status))
 
-  if (matches.length > 0)      scores.trackRecord += 5
-  if (wonApps.length >= 1)     scores.trackRecord += 5
-  if (wonApps.length >= 3)     scores.trackRecord += 5
-  if (activeApps.length >= 5)  scores.trackRecord += 5
+  // FundsRadar pipeline activity
+  if (matches.length > 0)      scores.trackRecord += 3
+  if (wonApps.length >= 1)     scores.trackRecord += 3
+  if (wonApps.length >= 3)     scores.trackRecord += 3
+  if (activeApps.length >= 5)  scores.trackRecord += 3
+
+  // CC-derived track record signals
+  if (!ccHasRemovalEvent)                                               scores.trackRecord += 3  // never removed from register
+  if (ccYearsOperating !== null && ccYearsOperating >= 10)              scores.trackRecord += 3  // 10+ years operating
+  if (ccAllOnTime && ccRequiredReturns >= 3)                            scores.trackRecord += 2  // consistent filing
+  scores.trackRecord = Math.min(scores.trackRecord, 20)
 
   // ── APPLICATION QUALITY (max 20) ─────────────────────────────────────────
   if ((org.beneficiaries?.trim().length ?? 0) > 100)  scores.applicationQuality += 5
@@ -153,6 +237,16 @@ export async function calculateTrustScore(
     improvements.push('Set your organisation type in settings to improve your governance score')
   if (activeApps.length < 5)
     improvements.push('Track more grant applications in your Pipeline to build a stronger track record')
+
+  // CC-derived improvement tips
+  if (ccCore && !ccAllOnTime && ccRequiredReturns > 0)
+    improvements.push('Some annual returns were filed late — consistent on-time filing boosts your governance score significantly')
+  if (ccCore && ccTrusteeCount < 3)
+    improvements.push('The Charity Commission shows fewer than 3 trustees — a full board of at least 6 demonstrates strong governance')
+  if (ccCore && !ccLatestSurplus)
+    improvements.push('Your latest CC financial data shows a deficit year — demonstrating a recovery plan can reassure funders')
+  if (ccCore && cc5yrGrowth !== null && cc5yrGrowth < 0)
+    improvements.push('Your CC financial data shows a declining income trend — diversifying income sources can improve your financial score')
 
   // ── Persist ───────────────────────────────────────────────────────────────
   await supabase.from('trust_score_history').insert({

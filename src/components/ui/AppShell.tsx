@@ -160,29 +160,32 @@ export default function AppShell({ children, orgName, plan }: {
         </div>
       </aside>
 
-      {/* Mobile nav — show only core 5 items */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 safe-bottom">
+      {/* Mobile bottom nav — 5 core items only */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex">
-          {navItems.filter(i => i.href !== '/pricing').map((item) => {
-            const active = pathname === item.href || pathname.startsWith(item.href + '/')
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors ${
-                  active ? 'text-[#0F4C35]' : 'text-gray-400'
-                }`}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            )
-          })}
+          {navItems
+            .filter(i => i.href !== '/pricing' && i.href !== '/weekly-plan')
+            .map((item) => {
+              const active = pathname === item.href || pathname.startsWith(item.href + '/')
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex-1 flex flex-col items-center gap-0.5 py-3 transition-colors min-w-0 ${
+                    active ? 'text-[#0F4C35]' : 'text-gray-400'
+                  }`}
+                >
+                  {item.icon}
+                  <span className="text-[9px] font-medium leading-none truncate">{item.label}</span>
+                </Link>
+              )
+            })}
         </div>
       </div>
 
       {/* Main */}
-      <main className="flex-1 md:ml-56 pb-20 md:pb-0">
+      <main className="flex-1 md:ml-56" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 64px)' }}>
+        <style>{`@media (min-width: 768px) { main { padding-bottom: 0 !important; } }`}</style>
         {children}
       </main>
     </div>
