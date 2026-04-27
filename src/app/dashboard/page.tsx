@@ -145,29 +145,12 @@ export default async function DashboardPage() {
           ))}
         </div>
 
-        {/* Trust Score + Grant cards row */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Trust Score widget */}
-          <div className="lg:w-72 flex-shrink-0 space-y-3">
-            <TrustScoreWidget initial={trustData} />
-            {org.charity_number && (
-              <a
-                href={`/charity/${org.charity_number}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 w-full text-xs font-medium text-[#0F4C35] bg-white border border-[#0F4C35]/20 rounded-xl py-2.5 hover:bg-[#F4F6F5] transition-colors"
-              >
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-                  <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M8 4.5C8 4.5 6 6 6 8s2 3.5 2 3.5M8 4.5C8 4.5 10 6 10 8s-2 3.5-2 3.5M4.5 6.5h7M4.5 9.5h7" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-                </svg>
-                View public charity profile
-              </a>
-            )}
-          </div>
+        {/* Trust Score — compact full-width strip */}
+        <div className="mb-6">
+          <TrustScoreWidget initial={trustData} compact />
+        </div>
 
-          {/* Grant cards */}
-          <div className="flex-1 min-w-0">
+        {/* Grant cards — full width */}
         {typedMatches.length === 0 ? (
           <div className="card text-center py-16 max-w-xl mx-auto">
             <div className="text-5xl mb-5">🚀</div>
@@ -192,8 +175,6 @@ export default async function DashboardPage() {
         ) : (
           <DashboardGrants matches={typedMatches} plan={plan} orgCountry={org.country} />
         )}
-          </div>
-        </div>
       </div>
     </AppShell>
   )

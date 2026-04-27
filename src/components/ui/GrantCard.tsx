@@ -150,7 +150,7 @@ export default function GrantCard({
         triggerType={modalTrigger}
       />
 
-      <div className={`bg-white rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex flex-col transition-shadow hover:shadow-[0_6px_24px_rgba(0,0,0,0.10)] ${isLocked ? 'relative overflow-hidden' : ''}`}>
+      <div className={`bg-white rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] flex flex-col h-full transition-shadow hover:shadow-[0_6px_24px_rgba(0,0,0,0.10)] ${isLocked ? 'relative overflow-hidden' : ''}`}>
 
         {/* ── Soft-gate overlay (4th+ card for free users) ── */}
         {isLocked && (
@@ -196,7 +196,7 @@ export default function GrantCard({
         </div>
 
         {/* ── Main content ── */}
-        <div className="px-5 pt-3 pb-4 flex flex-col gap-3">
+        <div className="px-5 pt-3 pb-4 flex flex-col gap-3 flex-1">
 
           {/* Title + funder + deadline */}
           <div>
@@ -332,7 +332,7 @@ export default function GrantCard({
           )}
 
           {/* Actions */}
-          <div className="flex flex-col gap-2 pt-1 border-t border-gray-100">
+          <div className="flex flex-col gap-2 pt-1 border-t border-gray-100 mt-auto">
             <div className="flex items-center gap-2">
               <select
                 value={status}

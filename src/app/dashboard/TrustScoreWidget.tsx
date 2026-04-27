@@ -10,9 +10,10 @@ interface Props {
     scores:       TrustScores
     improvements: string[]
   }
+  compact?: boolean
 }
 
-export default function TrustScoreWidget({ initial }: Props) {
+export default function TrustScoreWidget({ initial, compact }: Props) {
   const [data, setData]               = useState(initial)
   const [recalculating, setRecalc]    = useState(false)
 
@@ -40,6 +41,7 @@ export default function TrustScoreWidget({ initial }: Props) {
       improvements={data.improvements}
       recalculating={recalculating}
       onRecalculate={handleRecalculate}
+      compact={compact}
     />
   )
 }

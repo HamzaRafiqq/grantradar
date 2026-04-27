@@ -289,14 +289,14 @@ export default function DashboardGrants({ matches, plan, orgCountry }: Props) {
           <button onClick={clearFilters} className="btn-primary text-sm py-2">Clear filters</button>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 items-start">
           {filtered.map((match, i) => {
             const isLocked = plan === 'free' && i >= 3
             const lockedCount = plan === 'free' ? Math.max(0, filtered.length - 3) : 0
             return (
               <div
                 key={match.id}
-                className="animate-scale-in"
+                className="animate-scale-in flex flex-col"
                 style={{ animationDelay: `${Math.min(i * 55, 440)}ms` }}
               >
                 <GrantCard

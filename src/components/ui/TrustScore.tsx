@@ -13,6 +13,7 @@ interface Props {
   improvements: string[]
   recalculating?: boolean
   onRecalculate?: () => void
+  compact?: boolean
 }
 
 function CircularProgress({ score, color }: { score: number; color: string }) {
@@ -87,9 +88,105 @@ function GradeBadge({ total }: { total: number }) {
   return <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Starting out</span>
 }
 
-export default function TrustScore({ total, scores, improvements, recalculating, onRecalculate }: Props) {
+export default function TrustScore({ total, scores, improvements, recalculating, onRecalculate, compact }: Props) {
   const { text, ring } = trustScoreColor(total)
 
+  // ── Compact horizontal layout (used on dashboard) ────────────────────────
+  if (compact) {
+    return (
+      <div className="bg-white rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+          {/* Left: score circle + label */}
+          <div className="flex items-center gap-4 flex-shrink-0">
+            <div className="relative w-20 h-20 flex-shrink-0">
+              <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#E5E7EB" strokeWidth="10"/>
+                <circle
+                  cx="50" cy="50" r="45"
+                  fill="none"
+                  stroke={ring}
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                  strokeDasharray={CIRCUMFERENCE}
+                  strokeDashoffset={CIRCUMFERENCE * (1 - total / 100)}
+                  style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)' }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="font-display font-bold text-xl text-[#0D1117] leading-none">{total}</span>
+                <span className="text-[9px] text-gray-400 font-medium">/100</span>
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <h2 className="font-display font-bold text-[#0D1117] text-sm">Trust Score</h2>
+                <GradeBadge total={total} />
+              </div>
+              <p className="text-gray-400 text-xs">Visible to funders</p>
+              <div className="flex items-center gap-2 mt-2">
+                <Link
+                  href="/settings"
+                  className="text-xs font-semibold text-[#0F4C35] border border-[#0F4C35] py-1 px-3 rounded-lg hover:bg-[#0F4C35] hover:text-white transition-colors"
+                >
+                  Improve →
+                </Link>
+                {onRecalculate && (
+                  <button
+                    onClick={onRecalculate}
+                    disabled={recalculating}
+                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+                    title="Recalculate"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" className={recalculating ? 'animate-spin' : ''}>
+                      <path d="M13.5 2.5A7 7 0 102.5 13.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+                      <path d="M13.5 2.5v4h-4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="hidden sm:block w-px bg-gray-100 self-stretch" />
+
+          {/* Middle: category bars */}
+          <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2">
+            {(Object.keys(scores) as (keyof TrustScores)[]).map(key => (
+              <div key={key}>
+                <div className="flex justify-between items-center mb-0.5">
+                  <span className="text-[10px] text-gray-500 font-medium truncate">{CATEGORY_LABELS[key]}</span>
+                  <span className="text-[10px] font-bold text-[#0D1117] ml-1 flex-shrink-0">{scores[key]}<span className="text-gray-400 font-normal">/20</span></span>
+                </div>
+                <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${scores[key] * 5}%`, backgroundColor: ring, transition: 'width 1s cubic-bezier(0.4,0,0.2,1)' }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Right: top improvement tip */}
+          {improvements.length > 0 && (
+            <>
+              <div className="hidden sm:block w-px bg-gray-100 self-stretch" />
+              <div className="hidden sm:block flex-shrink-0 max-w-[200px]">
+                <p className="text-[10px] font-semibold text-[#0D1117] mb-1.5 uppercase tracking-wide">Top tip</p>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  <span className={`font-bold ${text}`}>↑ </span>
+                  {improvements[0]}
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // ── Full vertical layout (used on settings / profile) ────────────────────
   return (
     <div className="bg-white rounded-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-5">
       {/* Header */}
