@@ -27,24 +27,40 @@ export interface FinancialIntelligence {
   grantContext: string          // populated when grantAmount provided
 }
 
-function parseEndDate(raw: string | null | undefined): Date | null {
-  if (!raw) return null
+function parseEndDate(raw: string | number | null | undefined): Date | null {
+  if (raw === null || raw === undefined || raw === '') return null
 
-  // ISO formats: "2024-03-31", "2024-03-31T00:00:00", "2024-03-31T00:00:00Z"
-  let d = new Date(raw)
-  if (!isNaN(d.getTime())) return d
+  const s = String(raw).trim()
 
-  // UK format: "31/03/2024"
-  const ukMatch = String(raw).match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
-  if (ukMatch) {
-    d = new Date(parseInt(ukMatch[3]), parseInt(ukMatch[2]) - 1, parseInt(ukMatch[1]))
+  // Plain 4-digit year: "2024" or 2024 (number)
+  if (/^\d{4}$/.test(s)) {
+    return new Date(parseInt(s), 11, 31) // assume Dec 31
+  }
+
+  // Extract YYYY-MM-DD from any ISO-like string
+  // Handles: "2024-03-31", "2024-03-31T00:00:00", "2024-03-31T00:00:00Z",
+  //          "2024-03-31T00:00:00.000Z", "2024-03-31T00:00:00.0000000" (CC API quirk)
+  const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (isoMatch) {
+    const yr = parseInt(isoMatch[1])
+    const mo = parseInt(isoMatch[2]) - 1
+    const dy = parseInt(isoMatch[3])
+    const d = new Date(yr, mo, dy)
     if (!isNaN(d.getTime())) return d
   }
 
-  // Plain year: "2024"
-  const yrMatch = String(raw).match(/^(\d{4})$/)
-  if (yrMatch) {
-    return new Date(parseInt(yrMatch[1]), 11, 31) // assume Dec 31
+  // UK format: "31/03/2024"
+  const ukMatch = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (ukMatch) {
+    const d = new Date(parseInt(ukMatch[3]), parseInt(ukMatch[2]) - 1, parseInt(ukMatch[1]))
+    if (!isNaN(d.getTime())) return d
+  }
+
+  // Timestamp number (ms since epoch)
+  if (/^\d{10,13}$/.test(s)) {
+    const n = parseInt(s)
+    const d = new Date(n > 1e10 ? n : n * 1000)
+    if (!isNaN(d.getTime())) return d
   }
 
   return null
@@ -200,24 +216,35 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Parse yearly financials ──────────────────────────────────────────────
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function extractDate(r: any): string | number | null {
+      // 1. Try all known named fields
+      const KNOWN = [
+        'fin_period_end_date', 'period_end', 'financialPeriodEndDate',
+        'fin_end_date', 'end_date', 'periodEndDate', 'FinancialPeriodEndDate',
+        'financial_period_end_date', 'date_of_extract', 'report_date',
+        'fin_period_start_date', 'start_date', 'period_start_date',
+        'date', 'year_end', 'yearEnd', 'financial_year',
+      ]
+      for (const k of KNOWN) {
+        if (r[k] != null && r[k] !== '') return r[k]
+      }
+      // 2. Scan ALL string fields for anything that looks like a date
+      for (const val of Object.values(r)) {
+        if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val)) return val
+        if (typeof val === 'string' && /^\d{2}\/\d{2}\/\d{4}/.test(val)) return val
+      }
+      // 3. Scan for plain 4-digit year numbers
+      for (const [, val] of Object.entries(r)) {
+        if (typeof val === 'number' && val >= 1990 && val <= 2035) return val
+      }
+      return null
+    }
+
     const years: YearlyFinancial[] = rawFinancials
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((r: any, idx: number) => {
-        // Try every known field name for the period end date
-        const endDateRaw =
-          r.fin_period_end_date ??
-          r.period_end ??
-          r.financialPeriodEndDate ??
-          r.fin_end_date ??
-          r.end_date ??
-          r.periodEndDate ??
-          r.FinancialPeriodEndDate ??
-          r.financial_period_end_date ??
-          r.date_of_extract ??
-          r.report_date ??
-          r.fin_period_start_date ??  // fallback to start date if no end date
-          r.start_date ??
-          null
+        const endDateRaw = extractDate(r)
 
         const income  = Number(r.income ?? r.total_income ?? r.totalIncome ?? r.Income ?? 0)
         const expend  = Number(r.expenditure ?? r.total_expenditure ?? r.totalExpenditure ?? r.Expenditure ?? 0)
@@ -227,7 +254,7 @@ export async function POST(req: NextRequest) {
         const endYear = parsed ? parsed.getFullYear() : (new Date().getFullYear() - idx)
 
         return {
-          year: formatYear(endDateRaw, endYear),
+          year: formatYear(endDateRaw != null ? String(endDateRaw) : null, endYear),
           endYear,
           income,
           expenditure: expend,
