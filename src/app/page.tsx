@@ -124,13 +124,7 @@ const testimonials = [
 
 // ── Updated stats (item 1) ──────────────────────────────────────────────────
 const stats = [
-  {
-    end: 1000000,
-    prefix: '£',
-    formatFn: (n: number) => n >= 1_000_000 ? '1M' : n >= 1000 ? `${Math.round(n / 1000)}k` : `${n}`,
-    suffix: '+',
-    label: 'Funding matched for UK charities',
-  },
+  { end: 1, prefix: '£', suffix: 'M+', label: 'Funding matched for UK charities' },
   { end: 1200, suffix: '+', label: 'Active UK grants in database' },
   { end: 170000, label: 'UK charities we can help' },
   { end: 94, suffix: '%', label: 'Match accuracy rate' },
@@ -201,7 +195,6 @@ export default function LandingPage() {
                       end={s.end}
                       prefix={s.prefix ?? ''}
                       suffix={s.suffix ?? ''}
-                      formatFn={s.formatFn}
                       duration={1800}
                     />
                   </div>
