@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import FinancialHistory from '@/components/charity/FinancialHistory'
-import type { CCCharityProfile } from '@/app/api/charity-commission/[regNumber]/route'
+import type { CCCharityProfile, CCFinancialYear } from '@/app/api/charity-commission/[regNumber]/route'
 
 // Re-use the same logic as the API route to avoid an extra HTTP call in SSR
 async function getProfile(regNumber: string): Promise<CCCharityProfile | null> {
@@ -173,6 +173,195 @@ async function getProfile(regNumber: string): Promise<CCCharityProfile | null> {
   }
 }
 
+// ── CC API fallback (for charities not yet imported into Supabase) ────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function parseCCDate(raw: any): Date | null {
+  if (!raw) return null
+  const s = String(raw)
+  const asp = s.match(/\/Date\((-?\d+)/)
+  if (asp) return new Date(parseInt(asp[1]))
+  const iso = s.match(/(\d{4})-(\d{2})-(\d{2})/)
+  if (iso) return new Date(parseInt(iso[1]), parseInt(iso[2]) - 1, parseInt(iso[3]))
+  const uk = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (uk) return new Date(parseInt(uk[3]), parseInt(uk[2]) - 1, parseInt(uk[1]))
+  const d = new Date(s)
+  return isNaN(d.getTime()) ? null : d
+}
+
+function ccFormatYear(raw: unknown, fallbackYear?: number): string {
+  const d = parseCCDate(raw)
+  if (!d && fallbackYear) return `${fallbackYear - 1}-${String(fallbackYear).slice(2)}`
+  if (!d) return 'Unknown'
+  const yr = d.getFullYear(); const mo = d.getMonth() + 1
+  const startYr = mo <= 6 ? yr - 1 : yr
+  return `${startYr}-${String(yr).slice(2)}`
+}
+
+async function getProfileFromCCApi(regNumber: string): Promise<CCCharityProfile | null> {
+  const apiKey = process.env.CHARITY_COMMISSION_API_KEY
+  if (!apiKey) return null
+
+  const headers = { Accept: 'application/json', 'Ocp-Apim-Subscription-Key': apiKey }
+
+  const [basicRes, finRes, trusteeRes] = await Promise.all([
+    fetch(`https://api.charitycommission.gov.uk/register/api/allcharitydetailsV2/${regNumber}/0`, { headers, cache: 'no-store' }),
+    fetch(`https://api.charitycommission.gov.uk/register/api/charityFinancialHistory/${regNumber}/0`, { headers, cache: 'no-store' }),
+    fetch(`https://api.charitycommission.gov.uk/register/api/charityTrustees/${regNumber}/0`, { headers, cache: 'no-store' }).catch(() => null),
+  ])
+
+  if (!basicRes.ok) return null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const basic: any = await basicRes.json()
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let rawFin: any[] = []
+  if (finRes.ok) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fd: any = await finRes.json()
+    rawFin = Array.isArray(fd) ? fd : (fd?.data ?? fd?.financials ?? fd?.charity_annual_return_history ?? [])
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let rawTrustees: any[] = []
+  if (trusteeRes?.ok) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const td: any = await trusteeRes.json()
+    rawTrustees = Array.isArray(td) ? td : (td?.data ?? td?.trustees ?? [])
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function extractDateField(r: any): unknown {
+    const FIELDS = ['fin_period_end_date','period_end','financialPeriodEndDate','end_date','fin_end_date','periodEndDate','date']
+    for (const k of FIELDS) if (r[k] != null) return r[k]
+    for (const v of Object.values(r)) {
+      if (typeof v === 'string' && /(\d{4}-\d{2}-\d{2}|\/Date\()/.test(v)) return v
+    }
+    return null
+  }
+
+  const financialYears: CCFinancialYear[] = rawFin
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .map((r: any, idx: number) => {
+      const rawDate  = extractDateField(r)
+      const parsed   = parseCCDate(rawDate)
+      const endYear  = parsed ? parsed.getFullYear() : new Date().getFullYear() - idx
+      const incomeTotal      = Number(r.income ?? r.total_income ?? r.Income ?? 0)
+      const expenditureTotal = Number(r.expenditure ?? r.total_expenditure ?? r.Expenditure ?? 0)
+      const netIncome        = incomeTotal - expenditureTotal
+      return {
+        year: ccFormatYear(rawDate, endYear),
+        endYear,
+        periodEndDate:   parsed ? parsed.toISOString().split('T')[0] : String(endYear),
+        periodStartDate: null,
+        incomeTotal,
+        incomeDonations:   Number(r.income_donations_legacies ?? 0),
+        incomeCharitable:  Number(r.income_charitable_activities ?? 0),
+        incomeTrading:     Number(r.income_other_trading ?? 0),
+        incomeInvestments: Number(r.income_investments ?? 0),
+        incomeOther:       Number(r.income_other ?? 0),
+        expenditureTotal,
+        netIncome,
+        totalFunds:  r.total_funds != null ? Number(r.total_funds) : null,
+        accountType: r.account_type ?? null,
+        isSurplus:   netIncome >= 0,
+      }
+    })
+    .filter((y) => y.incomeTotal > 0)
+    .sort((a, b) => a.endYear - b.endYear)
+    .slice(-10)
+
+  const latest     = financialYears[financialYears.length - 1]
+  const fiveAgo    = financialYears.length >= 5 ? financialYears[financialYears.length - 5] : null
+  const latestIncome      = latest?.incomeTotal ?? Number(basic.latest_income ?? 0)
+  const latestExpenditure = latest?.expenditureTotal ?? 0
+  const latestTotalFunds  = latest?.totalFunds ?? null
+  const fiveYearGrowth    = fiveAgo && fiveAgo.incomeTotal > 0
+    ? Math.round(((latestIncome - fiveAgo.incomeTotal) / fiveAgo.incomeTotal) * 100) : null
+  const deficitYears  = financialYears.filter(y => y.netIncome < 0).length
+  const totalYears    = financialYears.length
+  const monthsOfReserves = latestTotalFunds && latestExpenditure > 0
+    ? Math.round((latestTotalFunds / (latestExpenditure / 12)) * 10) / 10 : null
+
+  const regDateParsed = parseCCDate(basic.date_of_registration)
+  const yearsOperating = regDateParsed
+    ? Math.floor((Date.now() - regDateParsed.getTime()) / (365.25 * 24 * 3600 * 1000)) : null
+
+  const defRatio = totalYears > 0 ? deficitYears / totalYears : 0
+  const growth   = fiveYearGrowth ?? 0
+  const healthBadge = defRatio <= 0.15 && growth >= 0 ? 'FINANCIALLY HEALTHY'
+    : defRatio <= 0.3 ? 'FINANCIALLY STABLE'
+    : defRatio <= 0.5 ? 'FINANCIAL CONCERNS' : 'FINANCIAL RISK'
+  const healthColor = healthBadge === 'FINANCIALLY HEALTHY' ? 'green'
+    : healthBadge === 'FINANCIAL RISK' ? 'red' : 'amber'
+  const healthNote = healthBadge === 'FINANCIALLY HEALTHY'
+    ? 'Consistent income growth, adequate reserves.' : healthBadge === 'FINANCIALLY STABLE'
+    ? 'Broadly stable with minor fluctuations.'
+    : healthBadge === 'FINANCIAL CONCERNS' ? 'Multiple deficit years — review sustainability.'
+    : 'Majority of years in deficit. High financial risk.'
+
+  const incomeTrend: CCCharityProfile['incomeTrend'] = financialYears.length < 3 ? 'insufficient_data'
+    : (() => {
+        const last = financialYears.slice(-2)
+        const prev = financialYears.slice(-5, -2)
+        const ra = last.reduce((s, y) => s + y.incomeTotal, 0) / last.length
+        const pa = prev.length > 0 ? prev.reduce((s, y) => s + y.incomeTotal, 0) / prev.length : ra
+        const pct = pa > 0 ? ((ra - pa) / pa) * 100 : 0
+        return pct >= 10 ? 'growing' : pct <= -10 ? 'declining' : 'stable'
+      })()
+
+  return {
+    registrationNumber: regNumber,
+    charityName:        basic.charity_name ?? '',
+    charityType:        basic.charity_type ?? null,
+    registrationStatus: basic.registration_status ?? 'Unknown',
+    dateOfRegistration: basic.date_of_registration ?? null,
+    dateOfRemoval:      basic.date_of_removal ?? null,
+    yearsOperating,
+    reportingStatus:    basic.reporting_status ?? null,
+    contactWeb:         basic.contact_web ?? null,
+    contactEmail:       basic.contact_email ?? null,
+    contactPhone:       basic.contact_phone ?? null,
+    contactAddress:     [basic.contact_address1, basic.contact_address2, basic.contact_address3].filter(Boolean).join(', '),
+    contactPostcode:    basic.contact_postcode ?? null,
+    charityActivities:  basic.charity_activities ?? null,
+    charitableObjects:  basic.charitable_objects ?? null,
+    charityGiftAid:     basic.charity_gift_aid ?? false,
+    charityHasLand:     basic.charity_has_land ?? false,
+    financialYears,
+    latestIncome,
+    latestExpenditure,
+    latestNetIncome:    latest?.netIncome ?? 0,
+    latestTotalFunds,
+    latestYear:         latest?.year ?? null,
+    fiveYearGrowth,
+    tenYearGrowth:      null,
+    deficitYears,
+    totalYears,
+    monthsOfReserves,
+    incomeTrend,
+    healthBadge:        healthBadge as CCCharityProfile['healthBadge'],
+    healthColor:        healthColor as CCCharityProfile['healthColor'],
+    healthNote,
+    complianceScore:    null,
+    annualReturns:      [],
+    geographicAreas:    [],
+    classifications:    [],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    trustees: rawTrustees.map((t: any) => ({
+      name:      t.trustee_name ?? t.name ?? '',
+      isChair:   t.is_chair ?? false,
+      trusteeId: t.trustee_id ?? t.id ?? '',
+    })),
+    trusteeCount: rawTrustees.length,
+    otherNames:      [],
+    events:          [],
+    linkedCharities: [],
+    aiSummary:       null,
+    lastSynced:      null,
+  }
+}
+
 // ── Metadata ──────────────────────────────────────────────────────────────────
 
 export async function generateMetadata(
@@ -204,7 +393,10 @@ export default async function PublicCharityPage(
   const num = regNumber.replace(/\D/g, '')
   if (!num) notFound()
 
-  const profile = await getProfile(num)
+  // Try Supabase first, then live CC API for charities not yet imported
+  let profile = await getProfile(num)
+  if (!profile) profile = await getProfileFromCCApi(num)
+
   if (!profile) {
     return (
       <div className="min-h-screen bg-[#F4F6F5] flex flex-col items-center justify-center px-4">
@@ -212,8 +404,7 @@ export default async function PublicCharityPage(
           <div className="text-5xl mb-4">🔍</div>
           <h1 className="font-display text-2xl font-bold text-[#0D1117] mb-2">Charity Not Found</h1>
           <p className="text-gray-500 mb-6">
-            Registration number <strong>{num}</strong> is not in our database yet.
-            This may be because our weekly import hasn&apos;t run, or the charity isn&apos;t on the CC register.
+            Registration number <strong>{num}</strong> could not be found on the Charity Commission register.
           </p>
           <Link href="/" className="bg-[#0F4C35] text-white px-6 py-3 rounded-xl font-semibold text-sm inline-block hover:bg-[#0c3d2a] transition-colors">
             Back to FundsRadar
@@ -382,15 +573,13 @@ export default async function PublicCharityPage(
         )}
 
         {/* Full financial history */}
-        {profile.financialYears.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-            <h2 className="font-display text-lg font-semibold text-[#0D1117] mb-5">Financial history</h2>
-            <FinancialHistory
-              registrationNumber={num}
-              initialData={profile}
-            />
-          </div>
-        )}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+          <h2 className="font-display text-lg font-semibold text-[#0D1117] mb-5">Financial history</h2>
+          <FinancialHistory
+            registrationNumber={num}
+            initialData={profile.financialYears.length > 0 ? profile : undefined}
+          />
+        </div>
 
         {/* Previous names */}
         {profile.otherNames.length > 0 && (
