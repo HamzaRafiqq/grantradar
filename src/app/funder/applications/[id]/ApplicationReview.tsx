@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import CharityIntelligence from '@/components/funder/CharityIntelligence'
 
 const STATUS_OPTIONS = [
@@ -193,7 +194,13 @@ export default function ApplicationReview({ application, answers, trustHistory }
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Applicant</h3>
             <p className="font-display font-bold text-[#0D1117] text-base">{org.name}</p>
             {org.charity_number && (
-              <p className="text-xs text-gray-500 mt-1">Reg. {org.charity_number}</p>
+              <div className="mt-1 flex items-center gap-2 flex-wrap">
+                <p className="text-xs text-gray-500">Reg. {org.charity_number}</p>
+                <Link href={`/charity/${org.charity_number}`} target="_blank"
+                  className="text-xs text-[#0F4C35] hover:underline font-medium inline-flex items-center gap-0.5">
+                  View CC profile →
+                </Link>
+              </div>
             )}
             {org.location && (
               <p className="text-xs text-gray-500 mt-0.5">📍 {org.location}</p>

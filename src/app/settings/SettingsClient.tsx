@@ -207,6 +207,12 @@ export default function SettingsClient({ profile, org }: Props) {
           <div>
             <label className="label">Registration number <span className="text-gray-400 font-normal">({locale.regTerm})</span></label>
             <input className="input" value={orgForm.charity_number ?? ''} onChange={(e) => setOrgForm({ ...orgForm, charity_number: e.target.value })} />
+            {orgForm.charity_number && (
+              <Link href={`/charity/${orgForm.charity_number}`} target="_blank"
+                className="text-xs text-[#0F4C35] hover:underline font-medium mt-1.5 inline-flex items-center gap-1">
+                View your public charity profile →
+              </Link>
+            )}
           </div>
           <div>
             <label className="label">Who do you help?</label>
