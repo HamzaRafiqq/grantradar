@@ -30,38 +30,61 @@ export interface FinancialIntelligence {
 function parseEndDate(raw: string | number | null | undefined): Date | null {
   if (raw === null || raw === undefined || raw === '') return null
 
-  const s = String(raw).trim()
-
-  // Plain 4-digit year: "2024" or 2024 (number)
-  if (/^\d{4}$/.test(s)) {
-    return new Date(parseInt(s), 11, 31) // assume Dec 31
+  // Numeric year passed directly (e.g. from a field like { year: 2024 })
+  if (typeof raw === 'number') {
+    if (raw >= 1990 && raw <= 2035) return new Date(raw, 11, 31)
+    // Unix timestamp (seconds or ms)
+    const d = new Date(raw > 1e10 ? raw : raw * 1000)
+    if (!isNaN(d.getTime()) && d.getFullYear() >= 1990) return d
+    return null
   }
 
-  // Extract YYYY-MM-DD from any ISO-like string
-  // Handles: "2024-03-31", "2024-03-31T00:00:00", "2024-03-31T00:00:00Z",
-  //          "2024-03-31T00:00:00.000Z", "2024-03-31T00:00:00.0000000" (CC API quirk)
-  const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})/)
-  if (isoMatch) {
-    const yr = parseInt(isoMatch[1])
-    const mo = parseInt(isoMatch[2]) - 1
-    const dy = parseInt(isoMatch[3])
-    const d = new Date(yr, mo, dy)
+  const s = String(raw).trim()
+
+  // ASP.NET JSON date: "/Date(1711843200000)/" or "/Date(1711843200000+0000)/"
+  const aspMatch = s.match(/\/Date\((-?\d+)([+-]\d{4})?\)\//)
+  if (aspMatch) {
+    const d = new Date(parseInt(aspMatch[1]))
     if (!isNaN(d.getTime())) return d
   }
 
-  // UK format: "31/03/2024"
-  const ukMatch = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  // Plain 4-digit year: "2024"
+  if (/^\d{4}$/.test(s)) {
+    return new Date(parseInt(s), 11, 31)
+  }
+
+  // ISO / ISO-like — extract YYYY-MM-DD regardless of trailing precision
+  // Handles: "2024-03-31", "2024-03-31T00:00:00", "2024-03-31T00:00:00.0000000"
+  const isoMatch = s.match(/(\d{4})-(\d{2})-(\d{2})/)
+  if (isoMatch) {
+    const d = new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]))
+    if (!isNaN(d.getTime())) return d
+  }
+
+  // UK format: "31/03/2024" or "31-03-2024"
+  const ukMatch = s.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/)
   if (ukMatch) {
     const d = new Date(parseInt(ukMatch[3]), parseInt(ukMatch[2]) - 1, parseInt(ukMatch[1]))
     if (!isNaN(d.getTime())) return d
   }
 
-  // Timestamp number (ms since epoch)
-  if (/^\d{10,13}$/.test(s)) {
-    const n = parseInt(s)
-    const d = new Date(n > 1e10 ? n : n * 1000)
-    if (!isNaN(d.getTime())) return d
+  // US format: "03/31/2024"
+  const usMatch = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (usMatch) {
+    const d = new Date(parseInt(usMatch[3]), parseInt(usMatch[1]) - 1, parseInt(usMatch[2]))
+    if (!isNaN(d.getTime()) && d.getFullYear() >= 1990) return d
   }
+
+  // Numeric string timestamp
+  if (/^-?\d{10,13}$/.test(s)) {
+    const n = parseInt(s)
+    const d = new Date(Math.abs(n) > 1e10 ? n : n * 1000)
+    if (!isNaN(d.getTime()) && d.getFullYear() >= 1990) return d
+  }
+
+  // Last resort: let JS try to parse it
+  const fallback = new Date(s)
+  if (!isNaN(fallback.getTime()) && fallback.getFullYear() >= 1990) return fallback
 
   return null
 }
@@ -302,7 +325,15 @@ export async function POST(req: NextRequest) {
       grantContext,
     }
 
-    return NextResponse.json(result)
+    // Temporary debug: include raw first record so we can see what CC API returns
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const _debug = rawFinancials.length > 0 ? {
+      recordCount: rawFinancials.length,
+      firstRecordKeys: Object.keys(rawFinancials[0]),
+      firstRecord: rawFinancials[0],
+    } : { recordCount: 0, note: 'no financial records returned' }
+
+    return NextResponse.json({ ...result, _debug })
   } catch (err) {
     console.error('financials route error:', err)
     return NextResponse.json({ error: 'server_error' }, { status: 500 })
