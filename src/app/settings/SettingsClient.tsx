@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { getLocale } from '@/lib/locale'
-import CharityFinancialIntelligence from '@/components/ui/CharityFinancialIntelligence'
+import FinancialHistory from '@/components/charity/FinancialHistory'
 import type { Profile, Organisation, Sector, AnnualIncome } from '@/types'
 
 const sectors = [
@@ -228,14 +228,20 @@ export default function SettingsClient({ profile, org }: Props) {
         </form>
       </div>
 
-      {/* Charity Financial Intelligence */}
+      {/* Financial History — same rich view as the public charity profile page */}
       {orgForm.charity_number && (
-        <div>
-          <h2 className="font-display text-lg font-semibold text-[#0D1117] mb-3">Financial health</h2>
-          <CharityFinancialIntelligence
-            charityNumber={orgForm.charity_number}
-            charityName={orgForm.name}
-          />
+        <div className="card">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-display text-lg font-semibold text-[#0D1117]">Financial history</h2>
+            <Link
+              href={`/charity/${orgForm.charity_number}`}
+              target="_blank"
+              className="text-xs text-[#0F4C35] hover:underline font-medium"
+            >
+              View public profile →
+            </Link>
+          </div>
+          <FinancialHistory registrationNumber={orgForm.charity_number} />
         </div>
       )}
 
