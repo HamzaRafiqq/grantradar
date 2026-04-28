@@ -30,6 +30,16 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const url = request.nextUrl.clone()
+
+  // Admin route protection
+  if (url.pathname.startsWith('/admin')) {
+    if (!user || user.email !== process.env.ADMIN_EMAIL) {
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
+    return supabaseResponse
+  }
+
   const protectedPaths = ['/dashboard', '/onboarding', '/grants', '/alerts', '/pipeline', '/settings']
   const isProtected = protectedPaths.some((p) => url.pathname.startsWith(p))
 
