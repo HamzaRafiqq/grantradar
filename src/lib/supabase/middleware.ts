@@ -30,14 +30,23 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const url = request.nextUrl.clone()
+  const isAdmin = user?.email === process.env.ADMIN_EMAIL && !!process.env.ADMIN_EMAIL
 
-  // Admin route protection
-  if (url.pathname.startsWith('/admin')) {
-    if (!user || user.email !== process.env.ADMIN_EMAIL) {
-      url.pathname = '/dashboard'
+  // Admin: send to /admin after login, bypass all charity checks
+  if (isAdmin) {
+    // After login/signup → go straight to admin
+    if (url.pathname === '/login' || url.pathname === '/signup') {
+      url.pathname = '/admin'
       return NextResponse.redirect(url)
     }
+    // Skip all other checks for admin users
     return supabaseResponse
+  }
+
+  // Non-admin trying to access /admin → redirect away
+  if (url.pathname.startsWith('/admin')) {
+    url.pathname = '/dashboard'
+    return NextResponse.redirect(url)
   }
 
   const protectedPaths = ['/dashboard', '/onboarding', '/grants', '/alerts', '/pipeline', '/settings']
