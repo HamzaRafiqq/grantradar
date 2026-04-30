@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
+import WaitlistToggle from './WaitlistToggle'
 
 export const metadata = { title: 'System — Admin' }
 
@@ -34,6 +36,18 @@ export default async function AdminSystemPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user || user.email !== process.env.ADMIN_EMAIL) redirect('/dashboard')
 
+  // Fetch waitlist mode setting
+  const serviceSupabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+  const { data: settingRow } = await serviceSupabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'waitlist_mode')
+    .maybeSingle()
+  const waitlistModeOn = settingRow?.value === 'true'
+
   // DB stats
   const [
     { count: profilesCount },
@@ -66,6 +80,9 @@ export default async function AdminSystemPage() {
         <h1 className="text-2xl font-bold text-gray-900">System</h1>
         <p className="text-gray-500 text-sm mt-1">Cron jobs, database stats, and environment</p>
       </div>
+
+      {/* Waitlist toggle — always first */}
+      <WaitlistToggle initialValue={waitlistModeOn} />
 
       <div className="space-y-6">
         {/* Cron jobs */}
