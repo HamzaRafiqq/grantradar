@@ -29,10 +29,12 @@ async function isWaitlistModeOn(): Promise<boolean> {
 
   try {
     const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/site_settings?key=eq.waitlist_mode&select=value&limit=1`
+    // Use service role key to bypass RLS
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     const res = await fetch(url, {
       headers: {
-        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
+        apikey: key,
+        Authorization: `Bearer ${key}`,
       },
       cache: 'no-store',
     })
