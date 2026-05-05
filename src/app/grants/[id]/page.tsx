@@ -69,8 +69,8 @@ export default async function GrantDetailPage({ params }: { params: Promise<{ id
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Deadline</p>
               <p className={`font-semibold ${deadlineColor(days)}`}>
-                {formatDate(grant.deadline)}
-                {days > 0 && <span className="text-xs font-normal ml-1">({days} days)</span>}
+                {grant.deadline ? formatDate(grant.deadline) : 'Rolling / Open'}
+                {days !== null && days > 0 && <span className="text-xs font-normal ml-1">({days} days)</span>}
               </p>
             </div>
             <div>

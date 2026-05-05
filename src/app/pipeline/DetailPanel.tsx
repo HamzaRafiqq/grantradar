@@ -154,12 +154,12 @@ export default function DetailPanel({ match, plan, onClose, onSave, onDelete }: 
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">
                 Deadline
-                {days > 0 && (
-                  <span className={`ml-2 normal-case font-normal ${deadlineColor(days)}`}>
-                    {deadlineLabel(days)}
+                {days !== null && days > 0 && (
+                  <span className={`ml-2 normal-case font-normal ${deadlineColor(days as number)}`}>
+                    {deadlineLabel(days as number)}
                   </span>
                 )}
-                {days <= 0 && deadlineSet && <span className="ml-2 normal-case font-normal text-gray-400">Overdue</span>}
+                {(days === null || days <= 0) && deadlineSet && <span className="ml-2 normal-case font-normal text-gray-400">Overdue</span>}
               </label>
               <input
                 type="date"

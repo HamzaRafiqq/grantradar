@@ -49,9 +49,10 @@ function inAmountRange(max: number, range: AmountRange): boolean {
   return true
 }
 
-function inDeadlineRange(deadline: string, range: DeadlineRange): boolean {
+function inDeadlineRange(deadline: string | null | undefined, range: DeadlineRange): boolean {
   if (range === 'any') return true
   const days = daysUntil(deadline)
+  if (days === null) return false // rolling grants (no deadline) don't match time-based ranges
   if (days <= 0) return false
   if (range === 'month') return days <= 30
   if (range === '3months') return days <= 90
@@ -137,7 +138,7 @@ export default function DashboardGrants({ matches, plan, orgCountry }: Props) {
     if (filters.sort === 'best') {
       result.sort((a, b) => b.eligibility_score - a.eligibility_score)
     } else if (filters.sort === 'deadline') {
-      result.sort((a, b) => daysUntil(a.grant.deadline) - daysUntil(b.grant.deadline))
+      result.sort((a, b) => (daysUntil(a.grant.deadline) ?? 99999) - (daysUntil(b.grant.deadline) ?? 99999))
     } else if (filters.sort === 'amount_high') {
       result.sort((a, b) => b.grant.max_award - a.grant.max_award)
     } else if (filters.sort === 'amount_low') {

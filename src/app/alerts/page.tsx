@@ -53,13 +53,15 @@ function LockedRow() {
 function AlertRow({ match, paid }: { match: GrantMatchWithGrant; paid: boolean }) {
   const days = daysUntil(match.grant.deadline)
   const badge =
-    days <= 7  ? { cls: 'bg-red-100 text-red-700 border border-red-200', label: `${days}d — Urgent` }
-    : days <= 14 ? { cls: 'bg-orange-100 text-orange-700 border border-orange-100', label: `${days}d — Soon` }
+    days === null ? { cls: 'bg-blue-50 text-blue-600 border border-blue-100', label: 'Rolling' }
+    : days <= 7   ? { cls: 'bg-red-100 text-red-700 border border-red-200', label: `${days}d — Urgent` }
+    : days <= 14  ? { cls: 'bg-orange-100 text-orange-700 border border-orange-100', label: `${days}d — Soon` }
     : { cls: 'bg-amber-50 text-amber-700 border border-amber-100', label: `${days}d left` }
 
   const rowBorder =
-    days <= 7 ? 'border-l-4 border-l-red-400'
-    : days <= 14 ? 'border-l-4 border-l-orange-400'
+    days === null ? 'border-l-4 border-l-blue-300'
+    : days <= 7   ? 'border-l-4 border-l-red-400'
+    : days <= 14  ? 'border-l-4 border-l-orange-400'
     : 'border-l-4 border-l-green-400'
 
   const displayName   = paid ? match.grant.name   : (match.grant.public_title  ?? `${match.grant.funder_type ?? 'UK'} Grant Opportunity`)
@@ -130,8 +132,8 @@ export default async function AlertsPage() {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
   const closing = visibleMatches
-    .filter(m => { const d = daysUntil(m.grant.deadline); return d > 0 && d <= 30 })
-    .sort((a, b) => daysUntil(a.grant.deadline) - daysUntil(b.grant.deadline))
+    .filter(m => { const d = daysUntil(m.grant.deadline); return d !== null && d > 0 && d <= 30 })
+    .sort((a, b) => (daysUntil(a.grant.deadline) ?? 999) - (daysUntil(b.grant.deadline) ?? 999))
 
   const newThisWeek = visibleMatches.filter(
     m => m.created_at && m.created_at >= sevenDaysAgo

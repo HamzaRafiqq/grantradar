@@ -52,7 +52,7 @@ export default async function DashboardPage() {
   const locale = getLocale(org.country)
   const greeting = getGreeting()
 
-  const closingSoon = typedMatches.filter((m) => daysUntil(m.grant.deadline) <= 30 && daysUntil(m.grant.deadline) > 0)
+  const closingSoon = typedMatches.filter((m) => { const d = daysUntil(m.grant.deadline); return d !== null && d <= 30 && d > 0 })
   const highScore = typedMatches.filter((m) => m.eligibility_score >= 70)
   const totalPotential = typedMatches.reduce((sum, m) => sum + (m.grant.max_award || 0), 0)
   const wonValue = (pipeline ?? [])

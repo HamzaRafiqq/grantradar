@@ -14,10 +14,12 @@ export function formatDate(dateStr: string): string {
   })
 }
 
-export function daysUntil(dateStr: string): number {
-  const now = new Date()
+/** Returns days until deadline, or null if no deadline set (rolling grant) */
+export function daysUntil(dateStr: string | null | undefined): number | null {
+  if (!dateStr) return null
   const target = new Date(dateStr)
-  const diff = target.getTime() - now.getTime()
+  if (isNaN(target.getTime())) return null
+  const diff = target.getTime() - Date.now()
   return Math.ceil(diff / (1000 * 60 * 60 * 24))
 }
 
@@ -27,7 +29,8 @@ export function scoreColor(score: number): string {
   return 'bg-red-100 text-red-800'
 }
 
-export function deadlineColor(days: number): string {
+export function deadlineColor(days: number | null): string {
+  if (days === null) return 'text-blue-500'
   if (days <= 7) return 'text-red-600 font-semibold'
   if (days <= 14) return 'text-orange-500 font-medium'
   return 'text-gray-500'

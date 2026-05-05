@@ -194,7 +194,7 @@ function rowFromCSV(row: Record<string, string>, publisherName: string): GrantRo
     ? `${programme}`
     : title
 
-  // Only keep future deadlines; past project ends become null
+  // Keep future deadlines; set null for past/missing (DB column is now nullable)
   const today = new Date().toISOString().split('T')[0]
   const deadline = deadlineRaw && deadlineRaw >= today ? deadlineRaw : null
 
@@ -241,6 +241,7 @@ function rowFromJSON(g: any, publisherName: string): GrantRow | null {
 
   const fullTitle = programme && programme !== title ? programme : title
   const today = new Date().toISOString().split('T')[0]
+  // Keep future deadlines; set null for past/missing (DB column is now nullable)
   const deadline = deadlineRaw && deadlineRaw >= today ? deadlineRaw : null
   const text = `${fullTitle} ${description}`
 
@@ -342,9 +343,13 @@ async function upsertBatch(supabase: any, rows: GrantRow[]): Promise<{ added: nu
   const added   = rows.filter(r => !existingUrls.has(r.application_url)).length
   const updated = rows.filter(r =>  existingUrls.has(r.application_url)).length
 
-  await supabase
+  const { error } = await supabase
     .from('grants')
     .upsert(rows, { onConflict: 'application_url', ignoreDuplicates: false })
+
+  if (error) {
+    throw new Error(`Upsert failed: ${error.message} (code: ${error.code})`)
+  }
 
   return { added, updated }
 }
@@ -412,15 +417,27 @@ export async function runImport(supabase: any, opts: ImportOptions = {}): Promis
 
       if (rows.length === 0) { result.skipped = 0; results.push(result); continue }
 
+      // Only keep grants with a future deadline (open opportunities only)
+      // Historical distributions (past or no deadline) are not useful for charities to apply to
+      const today = new Date().toISOString().split('T')[0]
+      const openRows = rows.filter(r => r.deadline && r.deadline >= today)
+      result.skipped = rows.length - openRows.length
+
+      if (openRows.length === 0) {
+        log(`    ↷ Skipped all ${rows.length} records (no future deadlines)`)
+        results.push(result)
+        continue
+      }
+
       // Upsert in batches of 100
-      for (let i = 0; i < rows.length; i += BATCH) {
-        const batch = rows.slice(i, i + BATCH)
+      for (let i = 0; i < openRows.length; i += BATCH) {
+        const batch = openRows.slice(i, i + BATCH)
         const { added, updated } = await upsertBatch(supabase, batch)
         result.added   += added
         result.updated += updated
       }
 
-      log(`    ✓ ${result.added} added, ${result.updated} updated from ${rows.length} records`)
+      log(`    ✓ ${result.added} added, ${result.updated} updated (${result.skipped} historical skipped) from ${rows.length} records`)
     } catch (err) {
       result.error = String(err)
       log(`    ✗ Error: ${result.error}`)

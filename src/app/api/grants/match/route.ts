@@ -172,7 +172,15 @@ export async function POST(req: NextRequest) {
 
     if (!org) return NextResponse.json({ error: 'Organisation not found' }, { status: 404 })
 
-    const { data: grants } = await supabase.from('grants').select('*').eq('is_active', true)
+    const today = new Date().toISOString().split('T')[0]
+    // Only match against open grants:
+    // - Non-360Giving grants (manually curated, always show) OR
+    // - 360Giving grants that have a confirmed future deadline
+    const { data: grants } = await supabase
+      .from('grants')
+      .select('*')
+      .eq('is_active', true)
+      .or(`source.neq.360giving,deadline.gte.${today}`)
     if (!grants || grants.length === 0) return NextResponse.json({ count: 0 })
 
     // Use AI if key is set, otherwise rule-based matching

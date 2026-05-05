@@ -39,9 +39,9 @@ const COLUMNS: { id: MatchStatus; label: string; color: string; bg: string; bord
 // ── Deadline badge ─────────────────────────────────────────────────────────────
 
 function DeadlineBadge({ deadline }: { deadline?: string | null }) {
-  if (!deadline) return null
+  if (!deadline) return <span className="text-[10px] text-blue-500">Rolling</span>
   const days = daysUntil(deadline)
-  if (days <= 0) return <span className="text-[10px] font-semibold text-gray-400">Overdue</span>
+  if (days === null || days <= 0) return <span className="text-[10px] font-semibold text-gray-400">Overdue</span>
   if (days <= 2)  return <span className="text-[10px] font-bold text-red-700 bg-red-100 px-1.5 py-0.5 rounded-full">{days}d left 🔴</span>
   if (days <= 7)  return <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-full">{days}d left 🟠</span>
   if (days <= 30) return <span className="text-[10px] font-medium text-amber-600">{days}d left</span>

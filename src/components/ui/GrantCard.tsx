@@ -27,10 +27,11 @@ const STATUS_COLOR: Record<MatchStatus, string> = {
   lost:        'bg-gray-100 text-gray-500',
 }
 
-function DeadlineBadge({ days }: { days: number }) {
-  if (days <= 0)  return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Closed</span>
-  if (days <= 7)  return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700 animate-pulse">🔴 {days}d left</span>
-  if (days <= 30) return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">🟡 {days}d left</span>
+function DeadlineBadge({ days }: { days: number | null }) {
+  if (days === null) return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">Rolling</span>
+  if (days <= 0)     return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Closed</span>
+  if (days <= 7)     return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700 animate-pulse">🔴 {days}d left</span>
+  if (days <= 30)    return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">🟡 {days}d left</span>
   return <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-700">🟢 {days}d left</span>
 }
 
@@ -223,7 +224,7 @@ export default function GrantCard({
             {/* Deadline */}
             <div className="flex items-center gap-2 mt-2">
               <DeadlineBadge days={days} />
-              {days > 0 && match.grant.deadline && (
+              {days !== null && days > 0 && match.grant.deadline && (
                 showExactDeadline ? (
                   <span className="text-xs text-gray-400">{formatDateLocale(match.grant.deadline, orgCountry)}</span>
                 ) : (
