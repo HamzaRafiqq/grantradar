@@ -184,6 +184,7 @@ export async function POST(req: NextRequest) {
       .select('*')
       .eq('is_active', true)
       .eq('grant_type', 'opportunity')
+      .not('source', 'eq', '360giving')
       .eq('country', orgCountry)
       .or(`deadline.gte.${today},deadline.is.null`)
       .not('funder', 'ilike', '%National Institutes%')
