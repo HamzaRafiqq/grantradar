@@ -186,6 +186,12 @@ export async function POST(req: NextRequest) {
       .eq('country', orgCountry)
       .in('source', ['manual', 'discovery'])
       .or(`deadline.gte.${today},deadline.is.null`)
+      .not('funder', 'ilike', '%National Institutes%')
+      .not('funder', 'ilike', '%NIH%')
+      .not('name', 'ilike', '%R01%')
+      .not('name', 'ilike', '%R34%')
+      .not('name', 'ilike', '%K22%')
+      .not('name', 'ilike', '%BRAIN Initiative%')
     if (!grants || grants.length === 0) return NextResponse.json({ count: 0 })
 
     // Use AI if key is set, otherwise rule-based matching

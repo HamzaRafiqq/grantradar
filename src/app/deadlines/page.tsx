@@ -52,7 +52,7 @@ interface Grant {
   public_title?: string | null
   funder: string
   funder_type?: string | null
-  deadline: string
+  deadline: string | null
   min_award?: number | null
   max_award?: number | null
 }
@@ -74,12 +74,27 @@ export default async function DeadlinesPage() {
     .from('grants')
     .select('id, name, public_title, funder, funder_type, deadline, min_award, max_award')
     .eq('is_active', true)
+    .in('source', ['manual', 'discovery'])
     .gte('deadline', todayStr)
     .lte('deadline', in90DaysStr)
+    .not('funder', 'ilike', '%National Institutes%')
+    .not('funder', 'ilike', '%NIH%')
     .order('deadline', { ascending: true })
     .limit(200)
 
+  const { data: rollingGrants } = await supabase
+    .from('grants')
+    .select('id, name, public_title, funder, funder_type, deadline, min_award, max_award')
+    .eq('is_active', true)
+    .in('source', ['manual', 'discovery'])
+    .is('deadline', null)
+    .not('funder', 'ilike', '%National Institutes%')
+    .not('funder', 'ilike', '%NIH%')
+    .order('name', { ascending: true })
+    .limit(100)
+
   const allGrants = (grants ?? []) as Grant[]
+  const allRollingGrants = (rollingGrants ?? []) as Grant[]
 
   // Group by This Week / This Month / Next Month
   const endOfWeek = new Date(today)
@@ -130,6 +145,9 @@ export default async function DeadlinesPage() {
             {allGrants.length > 0 && (
               <span className="font-semibold text-[#00C875]"> {allGrants.length} grants closing soon.</span>
             )}
+            {allRollingGrants.length > 0 && (
+              <span className="font-semibold text-[#00C875]"> Plus {allRollingGrants.length} rolling grants with no fixed deadline.</span>
+            )}
           </p>
           <Link
             href="/signup"
@@ -142,7 +160,7 @@ export default async function DeadlinesPage() {
 
       {/* Grant table */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
-        {allGrants.length === 0 ? (
+        {allGrants.length === 0 && allRollingGrants.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             <p className="text-5xl mb-4">📭</p>
             <p className="text-lg">No grants with deadlines in the next 90 days found.</p>
@@ -167,7 +185,7 @@ export default async function DeadlinesPage() {
                   {/* Grant rows */}
                   <div className="space-y-3">
                     {groupGrants.map((g) => {
-                      const days = daysUntil(g.deadline)
+                      const days = g.deadline ? daysUntil(g.deadline) : null
                       const displayTitle = g.public_title ?? anonymiseTitle(g.name)
                       const isAnon = !g.public_title && g.name.split(' ').length > 3
                       const funderDisplay = g.funder_type ?? 'UK Funder'
@@ -181,17 +199,17 @@ export default async function DeadlinesPage() {
                           <div className="flex-shrink-0">
                             <div
                               className={`w-16 text-center rounded-xl py-2 font-bold text-sm ${
-                                days <= 7
+                                days !== null && days <= 7
                                   ? 'bg-red-50 text-red-600'
-                                  : days <= 30
+                                  : days !== null && days <= 30
                                   ? 'bg-amber-50 text-amber-600'
                                   : 'bg-emerald-50 text-emerald-700'
                               }`}
                             >
-                              {days}d
+                              {days !== null ? `${days}d` : '∞'}
                             </div>
                             <div className="text-[10px] text-gray-400 text-center mt-1">
-                              {formatDeadline(g.deadline)}
+                              {g.deadline ? formatDeadline(g.deadline) : 'Rolling'}
                             </div>
                           </div>
 
@@ -233,6 +251,73 @@ export default async function DeadlinesPage() {
                 </div>
               )
             })}
+
+            {/* Rolling grants section */}
+            {allRollingGrants.length > 0 && (
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-xl">🔄</span>
+                  <h2 className="font-display text-xl font-bold text-[#0D1117]">Rolling Grants</h2>
+                  <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">
+                    Apply any time · {allRollingGrants.length} grant{allRollingGrants.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {allRollingGrants.map((g) => {
+                    const displayTitle = g.public_title ?? anonymiseTitle(g.name)
+                    const isAnon = !g.public_title && g.name.split(' ').length > 3
+                    const funderDisplay = g.funder_type ?? 'UK Funder'
+
+                    return (
+                      <div
+                        key={g.id}
+                        className="bg-white rounded-[12px] shadow-[0_2px_12px_rgba(0,0,0,0.06)] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+                      >
+                        {/* Rolling badge */}
+                        <div className="flex-shrink-0">
+                          <div className="w-16 text-center rounded-xl py-2 font-bold text-sm bg-blue-50 text-blue-600">
+                            ∞
+                          </div>
+                          <div className="text-[10px] text-gray-400 text-center mt-1">Rolling</div>
+                        </div>
+
+                        {/* Grant info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start gap-2 flex-wrap">
+                            <h3 className={`font-semibold text-sm text-[#0D1117] leading-snug ${isAnon ? 'blur-[3px] select-none' : ''}`}>
+                              {displayTitle}
+                            </h3>
+                            {isAnon && (
+                              <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full flex-shrink-0">
+                                Sign in to see full name
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 mt-1 flex-wrap">
+                            <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                              {funderDisplay}
+                            </span>
+                            <span className="text-xs font-semibold text-[#0F4C35]">
+                              {formatAmount(g.min_award, g.max_award)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* CTA */}
+                        <div className="flex-shrink-0">
+                          <Link
+                            href="/signup"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-[#0F4C35] hover:bg-[#00C875] hover:text-[#0D1117] px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+                          >
+                            See if you qualify →
+                          </Link>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </section>
