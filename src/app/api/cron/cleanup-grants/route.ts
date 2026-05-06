@@ -23,17 +23,17 @@ export async function GET(req: Request) {
   const { count: expired } = await supabase
     .from('grants')
     .update({ is_active: false })
-    .in('source', ['manual', 'discovery'])
+    .eq('grant_type', 'opportunity')
     .lt('deadline', today)
     .eq('is_active', true)
-    .select('*', { count: 'exact', head: true })
+    .select('*')
   results.expired = expired ?? 0
 
   // 2. Count active opportunities
   const { count: activeOpps } = await supabase
     .from('grants')
     .select('*', { count: 'exact', head: true })
-    .in('source', ['manual', 'discovery'])
+    .eq('grant_type', 'opportunity')
     .eq('is_active', true)
   results.active_opportunities = activeOpps ?? 0
 
@@ -41,7 +41,7 @@ export async function GET(req: Request) {
   const { count: awarded } = await supabase
     .from('grants')
     .select('*', { count: 'exact', head: true })
-    .eq('source', '360giving')
+    .eq('grant_type', 'awarded')
   results.awarded_historical = awarded ?? 0
 
   // 4. Email admin summary
