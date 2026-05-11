@@ -29,7 +29,7 @@ const defaultFilters: Filters = {
   causes: [],
   deadline: 'any',
   search: '',
-  countryScope: 'mine',
+  countryScope: 'all',
 }
 
 function loadFilters(): Filters {

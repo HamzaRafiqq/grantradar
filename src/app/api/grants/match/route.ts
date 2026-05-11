@@ -32,16 +32,22 @@ type Org = {
 
 function isGlobalGrant(grant: Grant) {
   return (
+    !grant.country ||
     grant.country === 'Global' ||
     grant.locations?.includes('Global') ||
-    grant.locations?.includes('International')
+    grant.locations?.includes('International') ||
+    grant.locations?.some(l => ['uk', 'uk-wide', 'united kingdom', 'england', 'nationwide', 'great britain'].includes(l.toLowerCase()))
   )
 }
 
 function countryMatches(org: Org, grant: Grant) {
   if (isGlobalGrant(grant)) return true
   if (!org.country) return true
-  return grant.country === org.country
+  if (grant.country === org.country) return true
+  // UK orgs match UK-wide grants
+  const locStr = (grant.locations ?? []).join(' ').toLowerCase()
+  if (locStr.includes('uk') || locStr.includes('united kingdom') || locStr.includes('england') || locStr.includes('nationwide')) return true
+  return false
 }
 
 // Rule-based matching used when no Anthropic API key is set
@@ -69,10 +75,13 @@ function ruleBasedMatch(org: Org, grants: Grant[]) {
         (income === 'over_500k' && !req.includes('under'))
       if (incomeOk) score += 1
 
+      // No cause info on either side = still show the grant
+      if (!org.sector && !grant.sectors?.length) score += 1
+
       // Cap at 10
       score = Math.min(10, Math.max(1, score))
 
-      if (score < 3) return null
+      if (score < 2) return null
 
       const sectorLabel = org.sector.charAt(0).toUpperCase() + org.sector.slice(1)
       const countryLabel = org.country ?? 'your country'
@@ -114,12 +123,12 @@ Current Projects: ${org.current_projects}`
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 4096,
-    system: `You are a global nonprofit grant eligibility expert. Score each grant for this organisation from 1-10 using:
-- Country match: 30 pts (grants from org's country or marked Global score highest)
-- Cause area match: 35 pts
+    system: `You are a UK nonprofit grant eligibility expert. Score each grant for this organisation from 1-10 using:
+- Country/geography match: 30 pts (UK grants, UK-wide, or Global score highest)
+- Cause area match: 35 pts (be generous — adjacent sectors count)
 - Income eligibility: 20 pts
-- Deadline validity: 15 pts
-Return grants scoring 5+. Cast a wide net — include grants that are a reasonable fit even if not perfect. Be specific about why the org qualifies. Return valid JSON array only — no markdown.`,
+- Organisation type eligibility: 15 pts
+Cast a WIDE net. Include any grant that could plausibly apply to this organisation. It is better to include a borderline match than exclude a real opportunity. Return all grants scoring 4+. Be specific about why the org qualifies. Return valid JSON array only — no markdown.`,
     messages: [
       {
         role: 'user',
@@ -127,7 +136,7 @@ Return grants scoring 5+. Cast a wide net — include grants that are a reasonab
           id: g.id, name: g.name, funder: g.funder, description: g.description,
           eligibility_criteria: g.eligibility_criteria, sectors: g.sectors,
           locations: g.locations, income_requirements: g.income_requirements,
-        })))}\n\nReturn JSON array: [{grant_id, eligibility_score (6-10), match_reason (1 sentence), watch_out (1 sentence or null)}]`,
+        })))}\n\nReturn JSON array of ALL grants scoring 4+: [{grant_id, eligibility_score (4-10), match_reason (1 sentence), watch_out (1 sentence or null)}]`,
       },
     ],
   })
@@ -185,7 +194,7 @@ export async function POST(req: NextRequest) {
       .eq('is_active', true)
       .eq('grant_type', 'opportunity')
       .not('source', 'eq', '360giving')
-      .eq('country', orgCountry)
+      .or(`country.eq.${orgCountry},country.eq.Global,country.is.null`)
       .or(`deadline.gte.${today},deadline.is.null`)
       .not('funder', 'ilike', '%National Institutes%')
       .not('funder', 'ilike', '%NIH%')
@@ -208,11 +217,11 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Sort by score desc and take top 20
+    // Sort by score desc and take top 50
     matches.sort((a: { eligibility_score: number }, b: { eligibility_score: number }) => b.eligibility_score - a.eligibility_score)
-    const top20 = matches.slice(0, 20)
+    const top50 = matches.slice(0, 50)
 
-    const rows = top20.map((m: { grant_id: string; eligibility_score: number; match_reason: string; watch_out: string | null }) => ({
+    const rows = top50.map((m: { grant_id: string; eligibility_score: number; match_reason: string; watch_out: string | null }) => ({
       user_id: user.id,
       grant_id: m.grant_id,
       eligibility_score: m.eligibility_score,
@@ -237,7 +246,7 @@ export async function POST(req: NextRequest) {
       }).catch(() => {})
     }
 
-    return NextResponse.json({ count: rows.length, total_scored: matches.length })
+    return NextResponse.json({ count: rows.length, total_scored: matches.length, grants_pool: grants.length })
   } catch (err) {
     console.error('Match error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
