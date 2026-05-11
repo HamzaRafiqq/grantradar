@@ -41,12 +41,20 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .order('eligibility_score', { ascending: false })
 
+  // Filter out any stale matches pointing at 360Giving historical grants
+  // (belt-and-suspenders — the match API already blocks these at creation time)
+  const cleanMatches = (matches ?? []).filter(
+    (m: { grant: { source?: string; grant_type?: string } }) =>
+      m.grant?.source !== '360giving' &&
+      (m.grant?.grant_type === 'opportunity' || m.grant?.grant_type == null)
+  )
+
   const { data: pipeline } = await supabase
     .from('pipeline_items')
     .select('stage, grant:grants(max_award)')
     .eq('user_id', user.id)
 
-  const typedMatches = (matches ?? []) as unknown as GrantMatchWithGrant[]
+  const typedMatches = cleanMatches as unknown as GrantMatchWithGrant[]
 
   const plan = profile?.plan ?? 'free'
   const locale = getLocale(org.country)
