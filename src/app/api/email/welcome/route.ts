@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       </div>
       <div style="display:flex;gap:12px;">
         <span style="color:#00C875;font-weight:700;">3.</span>
-        <span style="color:#4B5563;font-size:14px;">You get up to 20 matched grants with reasons why you qualify</span>
+        <span style="color:#4B5563;font-size:14px;">You get up to 50 matched grants with reasons why you qualify</span>
       </div>
     </div>
     <div style="text-align:center;margin:32px 0;">
