@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     title: 'FundsRadar — AI Grant Discovery for UK Charities',
     description: 'Find funding your charity is missing. Stop searching. Start winning.',
   },
+  robots: { index: true, follow: true },
 }
 
 const benefits = [
