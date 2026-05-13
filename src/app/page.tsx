@@ -8,7 +8,7 @@ import CountUp from '@/components/ui/CountUp'
 
 export const metadata: Metadata = {
   title: 'FundsRadar — AI Grant Discovery for UK Charities',
-  description: 'FundsRadar matches your UK charity to hundreds of grants using AI, explains your eligibility, and helps you draft applications — saving your team 8–10 hours every week.',
+  description: 'FundsRadar matches your UK charity to 300+ active grants using AI, explains your eligibility, and helps you draft applications — saving your team 8–10 hours every week.',
   openGraph: {
     title: 'FundsRadar — AI Grant Discovery for UK Charities',
     description: 'Find funding your charity is missing. Stop searching. Start winning.',
@@ -37,7 +37,7 @@ const benefits = [
       </svg>
     ),
     title: 'Instant Grant Discovery',
-    desc: 'Our AI scans thousands of UK grant databases and matches them to your charity profile in seconds — not hours.',
+    desc: 'Our AI scans 300+ active UK grants and matches them to your charity profile in seconds — not hours.',
   },
   {
     icon: (
@@ -83,7 +83,7 @@ const steps = [
   {
     step: '02',
     title: 'We find your matches',
-    desc: 'Our AI analyses thousands of active UK grants and scores your eligibility for each one in real time.',
+    desc: 'Our AI analyses 300+ active UK grants and scores your eligibility for each one in real time.',
   },
   {
     step: '03',
@@ -126,7 +126,7 @@ const testimonials = [
 // ── Updated stats (item 1) ──────────────────────────────────────────────────
 const stats = [
   { end: 1, prefix: '£', suffix: 'M+', label: 'Funding matched for UK charities' },
-  { end: 1200, suffix: '+', label: 'Active UK grants in database' },
+  { end: 300, suffix: '+', label: 'Active UK grants in database' },
   { end: 170000, label: 'UK charities we can help' },
   { end: 94, suffix: '%', label: 'Match accuracy rate' },
 ]

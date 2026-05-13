@@ -19,7 +19,7 @@ const instrumentSans = Instrument_Sans({
 
 export const metadata: Metadata = {
   title: 'FundsRadar — Find UK Charity Grants | AI-Powered Grant Discovery',
-  description: 'FundsRadar matches your UK charity to hundreds of grants using AI — saving your fundraising team 8–10 hours every week.',
+  description: 'FundsRadar matches your UK charity to 300+ active grants using AI — saving your fundraising team 8–10 hours every week.',
   keywords: 'charity grants UK, grant finder, charity funding, grant tracker, UK charity grants, fundraising tool',
   icons: {
     icon: '/icon.svg',

@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     <h1 style="color:white;font-size:26px;margin:0;font-weight:700;">Welcome, ${firstName}! 🎉</h1>
   </div>
   <div style="padding:32px;">
-    <p style="color:#0D1117;font-size:15px;line-height:1.6;">You've just joined thousands of nonprofits using FundsRadar to find funding they'd otherwise miss.</p>
+    <p style="color:#0D1117;font-size:15px;line-height:1.6;">You've just joined UK charities using FundsRadar to find funding they'd otherwise miss.</p>
     <p style="color:#4B5563;font-size:15px;line-height:1.6;">Our AI is ready to scan hundreds of active grants and match the best opportunities to your organisation — usually in under 30 seconds.</p>
     <div style="background:#F4F6F5;border-radius:12px;padding:20px;margin:24px 0;">
       <p style="margin:0 0 12px;font-weight:600;color:#0D1117;font-size:14px;">Here's what happens next:</p>

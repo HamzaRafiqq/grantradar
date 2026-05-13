@@ -76,7 +76,7 @@ export default function AnimatedHero() {
         <div className="animate-fade-up anim-delay-700 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 mt-8">
           {[
             { icon: '🏆', text: '£1M+ matched' },
-            { icon: '📋', text: '1,200+ grants' },
+            { icon: '📋', text: '300+ UK grants' },
             { icon: '⭐', text: '94% match accuracy' },
           ].map((item) => (
             <div key={item.text} className="flex items-center gap-2 text-white/60 text-sm">

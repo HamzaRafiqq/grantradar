@@ -164,7 +164,7 @@ export default async function DashboardPage() {
             <div className="text-5xl mb-5">🚀</div>
             <h3 className="font-display text-2xl font-bold text-[#0D1117] mb-3">Let&apos;s find your first grants</h3>
             <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              Our AI will search thousands of grant sources worldwide and match the best opportunities to your {locale.orgTerm} profile.
+              Our AI will search 300+ active UK grants and match the best opportunities to your {locale.orgTerm} profile.
             </p>
             <div className="grid grid-cols-3 gap-4 mb-8 text-left">
               {[

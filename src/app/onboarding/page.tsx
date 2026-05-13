@@ -271,7 +271,7 @@ export default function OnboardingPage() {
             <div className="grid grid-cols-3 gap-4 mb-8 text-center">
               {[
                 { value: '3 min', label: 'Setup time' },
-                { value: '1,000+', label: 'UK grants' },
+                { value: '300+', label: 'UK grants' },
                 { value: '94%', label: 'Match accuracy' },
               ].map((stat) => (
                 <div key={stat.label} className="bg-[#F4F6F5] rounded-xl p-3">
@@ -557,7 +557,7 @@ export default function OnboardingPage() {
             </div>
             <h2 className="font-display text-2xl font-bold text-[#0D1117] mb-3">Finding your grants...</h2>
             <p className="text-gray-500 text-sm max-w-xs mx-auto">
-              Our AI is scanning 1,000+ UK grants and scoring your eligibility for each one. This takes about 10–15 seconds.
+              Our AI is scanning 300+ active UK grants and scoring your eligibility for each one. This takes about 10–15 seconds.
             </p>
             <div className="mt-6 space-y-2 max-w-xs mx-auto">
               {['Analysing your charity profile...', 'Scanning UK grant databases...', 'Scoring your eligibility...'].map((msg, i) => (

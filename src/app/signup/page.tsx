@@ -59,7 +59,7 @@ export default function SignupPage() {
             <span className="font-display font-bold text-xl text-[#0F4C35]">FundsRadar</span>
           </Link>
           <h1 className="font-display text-3xl font-bold text-[#0D1117]">Create your account</h1>
-          <p className="text-gray-500 mt-2 text-sm">Join thousands of charities and funders on FundsRadar.</p>
+          <p className="text-gray-500 mt-2 text-sm">Join UK charities already finding grants with FundsRadar.</p>
         </div>
 
         <div className="card">

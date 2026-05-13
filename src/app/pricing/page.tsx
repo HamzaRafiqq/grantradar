@@ -41,7 +41,7 @@ const PRICES = {
 
 const freeFeatures    = [
   '3 matched grants',
-  'UK grant database (1,200+ grants)',
+  'UK grant database (300+ active grants)',
   'AI eligibility score (1–10)',
   'Match reason from AI',
   'Deadline date visible',
@@ -357,7 +357,7 @@ export default function PricingPage() {
           <div className="grid md:grid-cols-2 gap-6">
             {[
               { q: 'Can I cancel any time?', a: "Yes. Cancel from Settings and you keep access until the end of your billing period. No penalties, no questions asked." },
-              { q: 'Which grants are included?', a: 'FundsRadar covers 1,200+ UK grants including National Lottery, Esmée Fairbairn, Comic Relief, Lloyds Bank Foundation, UKRI, and hundreds more. Updated weekly.' },
+              { q: 'Which grants are included?', a: 'FundsRadar covers 300+ active UK grants including National Lottery, Esmée Fairbairn, Comic Relief, Lloyds Bank Foundation, and more. New grants added regularly.' },
               { q: 'What is the "charity profile on FundsRadar website" feature?', a: 'Starter+ charities get a public profile page on FundsRadar.co, helping funders find and learn about your work. Increases visibility with grant-makers.' },
               { q: 'What is the Agency plan for?', a: 'Grant consultants or umbrella organisations managing multiple charities. One login, up to 10 profiles, bulk matching, and white-label reports for your clients.' },
             ].map(item => (
